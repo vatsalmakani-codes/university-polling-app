@@ -8,15 +8,25 @@ const optionSchema = new mongoose.Schema({
 const pollSchema = new mongoose.Schema({
   question: { type: String, required: true },
   options: [optionSchema],
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Will always be an Admin
   createdAt: { type: Date, default: Date.now },
-  
-  // NEW: Add a field to define the poll type
-  pollType: {
+  status: {
     type: String,
-    enum: ['SINGLE_CHOICE', 'MULTIPLE_CHOICE'],
+    enum: ['ACTIVE', 'CLOSED'],
+    default: 'ACTIVE',
+  },
+  targetAudience: {
+    type: String,
+    enum: ['STUDENT', 'FACULTY', 'ALL'],
     required: true,
-    default: 'SINGLE_CHOICE',
+  },
+  expiresAt: {
+    type: Date,
+    required: true,
+  },
+  resultsPublished: {
+    type: Boolean,
+    default: false,
   },
 });
 

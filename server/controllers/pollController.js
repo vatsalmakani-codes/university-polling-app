@@ -2,49 +2,27 @@ const Poll = require('../models/pollModel');
 const Vote = require('../models/voteModel');
 
 /**
- * @desc    Create a new poll
- * @route   POST /api/polls
- * @access  Private (Faculty only)
- */
-exports.createPoll = async (req, res) => {
-  const { question, options, pollType } = req.body;
-  try {
-    const newPoll = new Poll({
-      question,
-      options: options.map(optionText => ({ optionText, votes: 0 })),
-      createdBy: req.user.id,
-      pollType, // Can be 'SINGLE_CHOICE' or 'MULTIPLE_CHOICE'
-    });
-    const poll = await newPoll.save();
-    res.status(201).json(poll);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-};
-
-/**
- * @desc    Get all polls with user's vote status
+ * @desc    Get all polls visible to the current user based on their role
  * @route   GET /api/polls
- * @access  Private
  */
 exports.getAllPolls = async (req, res) => {
   try {
-    // .lean() returns plain JS objects, which is faster for read-only operations
-    const polls = await Poll.find().sort({ createdAt: -1 }).populate('createdBy', 'name').lean();
+    const now = new Date();
+    const audienceFilter = req.user.role === 'student'
+      ? { targetAudience: { $in: ['STUDENT', 'ALL'] } }
+      : req.user.role === 'faculty'
+      ? { targetAudience: { $in: ['FACULTY', 'ALL'] } }
+      : {}; // Admins see all polls
 
-    // Find all votes cast by the current user
+    const polls = await Poll.find(audienceFilter).sort({ createdAt: -1 }).populate('createdBy', 'name').lean();
     const userVotes = await Vote.find({ user: req.user.id });
-    
-    // Create a Set of poll IDs for quick O(1) lookup
     const votedPollIds = new Set(userVotes.map(vote => vote.poll.toString()));
 
-    // Add a `hasVoted` property to each poll object
     const pollsWithVoteStatus = polls.map(poll => ({
       ...poll,
       hasVoted: votedPollIds.has(poll._id.toString()),
+      isExpired: new Date(poll.expiresAt) < now,
     }));
-
     res.json(pollsWithVoteStatus);
   } catch (err) {
     console.error(err.message);
@@ -53,9 +31,8 @@ exports.getAllPolls = async (req, res) => {
 };
 
 /**
- * @desc    Get a single poll by ID
+ * @desc    Get a single poll's details, respecting result publication rules
  * @route   GET /api/polls/:id
- * @access  Private
  */
 exports.getPollById = async (req, res) => {
   try {
@@ -64,10 +41,32 @@ exports.getPollById = async (req, res) => {
       return res.status(404).json({ msg: 'Poll not found' });
     }
 
-    // Find the specific vote for this user and this poll
     const vote = await Vote.findOne({ user: req.user.id, poll: req.params.id });
 
-    // Return the poll and an array of selected option IDs if the user has voted
+    // Admins can always see results. Others can only see if results are published.
+    if (req.user.role !== 'admin' && !poll.resultsPublished) {
+      // Create a plain JavaScript object from the Mongoose document
+      const pollData = poll.toObject();
+
+      // Create a new options array that does NOT contain the 'votes' field
+      // This uses object destructuring to exclude 'votes' from each option
+      const optionsWithoutVotes = pollData.options.map(({ votes, ...rest }) => rest);
+      
+      // Construct a new poll object to send back, keeping all top-level fields
+      // but replacing the original 'options' with our sanitized version.
+      const sanitizedPoll = {
+        ...pollData, // This includes _id, question, createdBy, pollType, etc.
+        options: optionsWithoutVotes, // This overwrites the options with the version without vote counts
+      };
+      
+      return res.json({ 
+        poll: sanitizedPoll, 
+        userVote: vote ? vote.selectedOptions : [], 
+        resultsHidden: true 
+      });
+    }
+    
+    // If results are public or user is admin, send the full poll object
     res.json({ poll, userVote: vote ? vote.selectedOptions : [] });
   } catch (err) {
     console.error(err.message);
@@ -76,53 +75,40 @@ exports.getPollById = async (req, res) => {
 };
 
 /**
- * @desc    Vote on a poll
+ * @desc    Cast a vote on a poll
  * @route   POST /api/polls/:id/vote
- * @access  Private (Students only)
  */
 exports.voteOnPoll = async (req, res) => {
-  // Expects an array of option IDs, e.g., { optionIds: ["...", "..."] }
   const { optionIds } = req.body;
-
   if (!optionIds || !Array.isArray(optionIds) || optionIds.length === 0) {
-    return res.status(400).json({ msg: 'Please select at least one option.' });
+    return res.status(400).json({ msg: 'Please select an option.' });
   }
 
   try {
     const poll = await Poll.findById(req.params.id);
-    if (!poll) {
-      return res.status(404).json({ msg: 'Poll not found' });
-    }
+    if (!poll) return res.status(404).json({ msg: 'Poll not found' });
+    if (poll.status === 'CLOSED') return res.status(400).json({ msg: 'This poll is closed for voting.' });
+    if (new Date(poll.expiresAt) < new Date()) return res.status(400).json({ msg: 'The deadline for this poll has passed.' });
+    if (poll.pollType === 'SINGLE_CHOICE' && optionIds.length > 1) return res.status(400).json({ msg: 'Only one option is allowed for this poll type.' });
+    if (await Vote.findOne({ user: req.user.id, poll: req.params.id })) return res.status(400).json({ msg: 'You have already voted on this poll.' });
 
-    // Server-side validation for poll type
-    if (poll.pollType === 'SINGLE_CHOICE' && optionIds.length > 1) {
-      return res.status(400).json({ msg: 'Only one option is allowed for this poll type.' });
-    }
-
-    // Check if user has already voted
-    const alreadyVoted = await Vote.findOne({ user: req.user.id, poll: req.params.id });
-    if (alreadyVoted) {
-      return res.status(400).json({ msg: 'You have already voted on this poll.' });
-    }
-
-    // Create the new vote record
     const newVote = new Vote({
       user: req.user.id,
       poll: req.params.id,
       selectedOptions: optionIds,
     });
     await newVote.save();
-
-    // Increment the vote count for each selected option in the poll document
-    optionIds.forEach(optionId => {
-      const option = poll.options.id(optionId);
-      if (option) {
-        option.votes += 1;
-      }
-    });
     
+    const updatedOptions = poll.options.map(opt => {
+      if(optionIds.includes(opt._id.toString())) {
+        opt.votes += 1;
+      }
+      return opt;
+    });
+    poll.options = updatedOptions;
     await poll.save();
     
+    req.io.to(req.params.id).emit('vote-update', poll);
     res.json(poll);
   } catch (err) {
     console.error(err.message);
@@ -131,29 +117,29 @@ exports.voteOnPoll = async (req, res) => {
 };
 
 /**
- * @desc    Delete a poll
- * @route   DELETE /api/polls/:id
- * @access  Private (Admin or Poll Creator)
+ * @desc    Get the voting history for the logged-in student
+ * @route   GET /api/polls/history/my-votes
  */
-exports.deletePoll = async (req, res) => {
+exports.getMyVoteHistory = async (req, res) => {
   try {
-    const poll = await Poll.findById(req.params.id);
-    if (!poll) {
-      return res.status(404).json({ msg: 'Poll not found' });
-    }
+    const votes = await Vote.find({ user: req.user.id }).populate('poll', 'question options').sort({_id: -1});
 
-    // Authorization check: User must be an admin or the person who created the poll
-    if (req.user.role !== 'admin' && poll.createdBy.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'User not authorized' });
-    }
+    const history = votes.map(vote => {
+      if (!vote.poll) return null;
+      
+      const votedForTexts = vote.selectedOptions.map(votedId => {
+        const selectedOption = vote.poll.options.find(opt => opt._id.equals(votedId));
+        return selectedOption ? selectedOption.optionText : '[Deleted Option]';
+      });
 
-    // Delete the poll itself
-    await poll.deleteOne();
-    
-    // IMPORTANT: Also delete all votes associated with this poll to keep DB clean
-    await Vote.deleteMany({ poll: req.params.id });
+      return {
+        pollQuestion: vote.poll.question,
+        votedFor: votedForTexts.join(', '),
+        pollId: vote.poll._id
+      }
+    }).filter(Boolean);
 
-    res.json({ msg: 'Poll and associated votes removed' });
+    res.json(history);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -161,46 +147,21 @@ exports.deletePoll = async (req, res) => {
 };
 
 /**
- * @desc    Get the voting history for the logged-in user
- * @route   GET /api/polls/history/my-votes
- * @access  Private (Students only)
+ * @desc    Get all polls created by the logged-in faculty/admin
+ * @route   GET /api/polls/history/my-polls
  */
-exports.getMyVoteHistory = async (req, res) => {
+exports.getMyCreatedPolls = async (req, res) => {
   try {
-    const votes = await Vote.find({ user: req.user.id })
-      .populate({
-          path: 'poll',
-          select: 'question options',
-      })
-      .sort({_id: -1});
-
-    // Format the response to be easy for the frontend to consume
-    const history = votes.map(vote => {
-      const poll = vote.poll;
-      // Handle cases where the poll might have been deleted after the vote was cast
-      if (!poll) {
-        return {
-          pollQuestion: 'This poll has been deleted.',
-          votedFor: 'N/A',
-          pollId: vote.poll // will be the ID
-        };
-      }
-      
-      // Map over the array of selected options to get their text
-      const votedForTexts = vote.selectedOptions.map(votedId => {
-        const selectedOption = poll.options.find(opt => opt._id.equals(votedId));
-        return selectedOption ? selectedOption.optionText : '[Deleted Option]';
-      });
-
-      return {
-        pollQuestion: poll.question,
-        votedFor: votedForTexts.join(', '), // Join multiple answers with a comma
-        pollId: poll._id
-      }
-    });
-
-    res.json(history);
-  } catch (err) {
+    const polls = await Poll.find({ createdBy: req.user.id }).sort({ createdAt: -1 });
+    
+    const formattedPolls = polls.map(p => ({ 
+        pollQuestion: p.question, 
+        status: p.status, 
+        pollId: p._id 
+    }));
+    
+    res.json(formattedPolls);
+  } catch(err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
