@@ -1,0 +1,25 @@
+.main-layout {
+  display: flex;
+  width: 100%;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.page-content {
+  padding: 1.5rem;
+  width: 100%;
+  flex-grow: 1;
+}
+
+/* Responsive adjustment for the sidebar */
+@media screen and (max-width: 768px) {
+  .main-layout {
+    flex-direction: column;
+  }
+}

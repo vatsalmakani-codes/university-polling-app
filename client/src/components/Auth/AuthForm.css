@@ -1,0 +1,119 @@
+.auth-form-card {
+  width: 100%;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-header h2 {
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--dark-color);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+/* NEW: Added Label Styles */
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 50px;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
+  color: var(--dark-color);
+}
+.form-group input::placeholder {
+  color: #b7b9cc;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.25);
+}
+
+/* NEW: Styles for the password toggle */
+.password-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-input-group input {
+  padding-right: 2.5rem; /* Make space for the icon */
+}
+.password-toggle-icon {
+  position: absolute;
+  right: 1rem;
+  cursor: pointer;
+  color: var(--secondary-color);
+}
+
+
+.btn-auth {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  min-height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s;
+}
+
+.btn-auth:hover:not(:disabled) {
+  background-color: var(--primary-hover-color);
+}
+
+.btn-auth:disabled {
+  background-color: #a3b8f2;
+  cursor: not-allowed;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+.auth-footer a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  text-align: center;
+  color: var(--danger-color);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.auth-header p {
+    color: var(--secondary-color);
+}
+.role-highlight {
+    font-weight: 700;
+    color: var(--primary-color);
+    text-transform: capitalize;
+}
