@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   // --- NEW PERMISSIONS FIELDS ---
   managedScope: { // For sub-admins who manage user types
     type: String,
-    enum: ['STUDENT', 'FACULTY', 'BOTH', 'NONE'],
+    enum: ['STUDENT', 'FACULTY', 'BOTH', 'POLLS', 'NONE'],
     default: 'NONE',
   },
   managedPolls: [{ // For sub-admins who manage specific polls

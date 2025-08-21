@@ -202,3 +202,50 @@
     justify-content: center;
   }
 }
+
+
+/* --- NEW STYLES FOR FEEDBACK PROMPT --- */
+.feedback-prompt {
+  text-align: center;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-feedback {
+  padding: .75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+   background-color: #d6a000;
+  color: #fff;
+}
+
+.btn-feedback:hover {
+  background-color: #d6a000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-feedback.submitted {
+  background-color: var(--success-color);
+  cursor: default;
+}
+
+.btn-feedback.submitted:hover {
+  transform: none;
+  box-shadow: none;
+}
+.star-rating{
+      display: -webkit-box;
+}
+input[type="radio"] {
+    width: 20px !important;
+    opacity: 0;
+}

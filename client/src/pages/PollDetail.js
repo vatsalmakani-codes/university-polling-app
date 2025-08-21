@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useMemo, useContext, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Spinner from '../components/Spinner';
 import FeedbackModal from '../components/modals/FeedbackModal';
-import { FaUser, FaClock, FaChartBar, FaCheck, FaInfoCircle } from 'react-icons/fa';
+import { FaUser, FaClock, FaChartBar, FaCheck, FaInfoCircle, FaPenFancy, FaCheckCircle } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
@@ -13,38 +13,44 @@ import './PollDetail.css';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const PollDetail = () => {
+  // Component State
   const [poll, setPoll] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [userVote, setUserVote] = useState([]);
   const [resultsHidden, setResultsHidden] = useState(false);
+  const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   
+  // Hooks
   const { id } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const fetchPoll = async () => {
-    // Don't set loading to true on refetch to avoid screen flash
+  // Data Fetching
+  const fetchPoll = useCallback(async () => {
     try {
       const res = await axios.get(`/api/polls/${id}`);
       setPoll(res.data.poll);
       setUserVote(res.data.userVote);
       setResultsHidden(res.data.resultsHidden || false);
+      setHasSubmittedFeedback(res.data.hasSubmittedFeedback || false);
     } catch (err) {
       console.error("Failed to fetch poll:", err);
       navigate('/dashboard'); // Redirect if poll not found
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, navigate]);
   
   useEffect(() => {
+    setIsLoading(true);
     fetchPoll();
-  }, [id, navigate]);
+  }, [fetchPoll]);
 
+  // Event Handlers
   const handleVoteSelection = (optionId) => {
     if (poll?.pollType === 'SINGLE_CHOICE') {
       setSelectedOptions([optionId]);
@@ -62,7 +68,6 @@ const PollDetail = () => {
     setError('');
     try {
       await axios.post(`/api/polls/${id}/vote`, { optionIds: selectedOptions });
-      setShowFeedbackModal(true); // Show feedback modal on successful vote
       fetchPoll(); // Refetch to update the view to results
     } catch (err) {
       setError(err.response?.data?.msg || 'Error submitting vote.');
@@ -71,6 +76,7 @@ const PollDetail = () => {
     }
   };
 
+  // Memoized Data for Chart
   const chartData = useMemo(() => {
     if (!poll?.options || resultsHidden) return null;
     const labels = poll.options.map(opt => opt.optionText);
@@ -89,13 +95,16 @@ const PollDetail = () => {
     };
   }, [poll, userVote, resultsHidden]);
 
+  // Loading and Error States
   if (isLoading) return <Spinner fullscreen text="Loading Poll..." />;
   if (!poll) return <div className="error-state">Poll not found.</div>;
 
+  // Derived State for Rendering Logic
   const totalVotes = poll.options?.reduce((acc, option) => acc + (option.votes || 0), 0) || 0;
   const hasVoted = userVote.length > 0;
-  const canVote = user.role !== 'admin' && poll.status === 'ACTIVE' && new Date(poll.expiresAt) > new Date();
+  const canVote = (user.role === 'student' || user.role === 'faculty') && poll.status === 'ACTIVE' && new Date(poll.expiresAt) > new Date();
 
+  // Sub-component Renderers
   const renderVotingOptions = () => (
     <div className="voting-section">
       <p className="voting-instructions">Select your option(s) below and cast your vote.</p>
@@ -141,13 +150,29 @@ const PollDetail = () => {
             }}
           />}
         </div>
+        {hasVoted && (
+          <div className="feedback-prompt">
+            {hasSubmittedFeedback ? (
+              <button className="btn-feedback submitted" disabled><FaCheckCircle /> Feedback Submitted</button>
+            ) : (
+              <button className="btn-feedback" onClick={() => setShowFeedbackModal(true)}><FaPenFancy /> Share Your Feedback</button>
+            )}
+          </div>
+        )}
       </div>
     );
   };
   
   return (
     <>
-      {showFeedbackModal && <FeedbackModal pollId={id} closeModal={() => setShowFeedbackModal(false)} />}
+      {showFeedbackModal && 
+        <FeedbackModal 
+          pollId={id} 
+          closeModal={() => {
+            setShowFeedbackModal(false);
+            fetchPoll(); // Refetch after submitting/closing to update button state
+          }} 
+        />}
       <div className="poll-detail-container">
         <div className='poll-detail-card'>
           <div className="poll-header-info">
@@ -159,7 +184,6 @@ const PollDetail = () => {
             <div className="stat-item"><FaClock /><span><strong>Ends</strong><br />{format(new Date(poll.expiresAt), 'MMM d, yyyy')}</span></div>
             <div className="stat-item"><FaChartBar /><span><strong>Total Votes</strong><br />{resultsHidden ? 'Hidden' : totalVotes}</span></div>
           </div>
-          
           {canVote && !hasVoted ? renderVotingOptions() : renderResults()}
         </div>
       </div>

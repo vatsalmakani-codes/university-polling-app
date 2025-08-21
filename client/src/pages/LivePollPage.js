@@ -57,7 +57,7 @@ const LivePollPage = () => {
 
   const leadingOption = useMemo(() => {
     if (!poll || !poll.options || poll.options.length === 0 || totalVotes === 0) {
-      return { text: 'N/A', votes: 0 };
+      return { optionText: 'N/A', votes: 0 };
     }
     return poll.options.reduce((leader, current) =>
       current.votes > leader.votes ? current : leader,
@@ -104,7 +104,7 @@ const LivePollPage = () => {
           <FaTrophy className="stat-icon winner" />
           <div className="stat-info">
             <span className="stat-label">Leading Option</span>
-            <span className="stat-number truncate">{leadingOption.text}</span>
+            <span className="stat-number truncate">{leadingOption.optionText}</span>
           </div>
         </div>
         <div className="stat-card">

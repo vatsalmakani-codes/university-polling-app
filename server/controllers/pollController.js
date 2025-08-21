@@ -1,6 +1,6 @@
 const Poll = require('../models/pollModel');
 const Vote = require('../models/voteModel');
-
+const Feedback = require('../models/feedbackModel'); 
 /**
  * @desc    Get all polls visible to the current user based on their role
  * @route   GET /api/polls
@@ -53,17 +53,25 @@ exports.getPollById = async (req, res) => {
     const poll = await Poll.findById(req.params.id).populate('createdBy', 'name');
     if (!poll) return res.status(404).json({ msg: 'Poll not found' });
 
-    const vote = await Vote.findOne({ user: req.user.id, poll: req.params.id });
+
+ // Fetch both the user's vote AND their feedback for this poll
+    const [vote, feedback] = await Promise.all([
+      Vote.findOne({ user: req.user.id, poll: req.params.id }),
+      Feedback.findOne({ user: req.user.id, poll: req.params.id })
+    ]);
+    
+    // --- NEW PROPERTY ---
+    const hasSubmittedFeedback = !!feedback; // Convert feedback object to boolean
 
     const isAdmin = ['super-admin', 'sub-admin'].includes(req.user.role);
     if (!isAdmin && !poll.resultsPublished) {
       const pollData = poll.toObject();
       const optionsWithoutVotes = pollData.options.map(({ votes, ...rest }) => rest);
       const sanitizedPoll = { ...pollData, options: optionsWithoutVotes };
-      return res.json({ poll: sanitizedPoll, userVote: vote ? vote.selectedOptions : [], resultsHidden: true });
+      return res.json({ poll: sanitizedPoll, userVote: vote ? vote.selectedOptions : [], resultsHidden: true, hasSubmittedFeedback });
     }
     
-    res.json({ poll, userVote: vote ? vote.selectedOptions : [], resultsHidden: false });
+    res.json({ poll, userVote: vote ? vote.selectedOptions : [], resultsHidden: false, hasSubmittedFeedback });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

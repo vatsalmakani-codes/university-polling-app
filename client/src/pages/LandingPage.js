@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import {
-  FaShieldAlt, FaMobileAlt, FaLock, FaEnvelope, FaUniversalAccess, 
+  FaShieldAlt, FaMobileAlt, FaLock, FaEnvelope, FaUniversalAccess,
   FaChartPie, FaStar, FaQuoteLeft
 } from 'react-icons/fa';
 import './LandingPage.css';
@@ -31,7 +31,8 @@ const TestimonialCard = ({ stars, text, author, avatar }) => (
     <div className="stars">{Array(stars).fill(0).map((_, i) => <FaStar key={i} />)}</div>
     <p className="quote">"{text}"</p>
     <div className="author-info">
-      <img src={`http://localhost:5000${avatar}`} alt={author} className="author-avatar" />
+      <img style={{ height: '30px' }} src={avatar === '/uploads/default.png' ? `https://api.dicebear.com/7.x/initials/svg?seed=${author}&backgroundColor=4e73df&fontSize=35&radius=50`
+        : `http://localhost:5000${avatar}`} alt={author} className="author-avatar" />
       <span className="author">- {author}</span>
     </div>
   </motion.div>
@@ -74,6 +75,7 @@ const LandingPage = () => {
     return <Navigate to="/dashboard" />;
   }
 
+
   return (
     <div className="landing-page-wrapper">
       <nav className="landing-nav">
@@ -98,7 +100,8 @@ const LandingPage = () => {
           <motion.div className="social-proof" variants={fadeInUp} transition={{ delay: 0.6 }}>
             <div className="avatars">
               {publicProfiles.map(profile => (
-                <img key={profile._id} src={`http://localhost:5000${profile.profilePicture}`} alt={profile.name} title={profile.name} />
+                <img key={profile._id} src={profile.profilePicture === '/uploads/default.png' ? `https://api.dicebear.com/7.x/initials/svg?seed=${profile.name}&backgroundColor=4e73df&fontSize=35&radius=50`
+                  : `http://localhost:5000${profile.profilePicture}`} alt={profile.name} title={profile.name} />
               ))}
             </div>
             <span>Trusted by students and faculty across the university.</span>
@@ -106,7 +109,7 @@ const LandingPage = () => {
         </div>
       </motion.section>
 
-      <motion.section 
+      <motion.section
         className="landing-features-detailed"
         initial="initial" whileInView="animate"
         viewport={{ once: true, amount: 0.2 }}
@@ -126,7 +129,7 @@ const LandingPage = () => {
         </div>
       </motion.section>
 
-      <motion.section 
+      <motion.section
         className="landing-testimonials"
         initial="initial" whileInView="animate"
         viewport={{ once: true, amount: 0.2 }}
@@ -137,7 +140,7 @@ const LandingPage = () => {
         </div>
         <div className="testimonials-grid">
           {testimonials.length > 0 ? testimonials.map(item => (
-            <TestimonialCard 
+            <TestimonialCard
               key={item._id}
               stars={item.rating}
               text={item.comment}
@@ -148,7 +151,7 @@ const LandingPage = () => {
         </div>
       </motion.section>
 
-      <motion.section 
+      <motion.section
         className="cta-section"
         initial="initial" whileInView="animate"
         viewport={{ once: true, amount: 0.5 }}
@@ -159,7 +162,7 @@ const LandingPage = () => {
           <Link to="/login" className="btn-cta-secondary">Create Your Account</Link>
         </motion.div>
       </motion.section>
-      
+
       <footer className="landing-footer">
         <div className="footer-container">
           <div className="footer-grid">

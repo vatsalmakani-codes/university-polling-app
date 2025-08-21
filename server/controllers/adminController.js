@@ -41,6 +41,9 @@ exports.publishPollResults = async (req, res) => {
     const poll = await Poll.findById(req.params.id);
     if (!poll) return res.status(404).json({ msg: 'Poll not found' });
     poll.resultsPublished = !poll.resultsPublished;
+    if (poll.resultsPublished) {
+      poll.status = 'CLOSED';
+    }
     await poll.save();
     res.json(poll);
   } catch (err) {
@@ -69,7 +72,7 @@ exports.resetUserPassword = async (req, res) => {
 // @desc    Admin creates a new user (student or faculty)
 exports.createNewUser = async (req, res) => {
   const { name, email, password, role } = req.body;
-  
+
   // Authorization Check: Only super-admins or sub-admins with the correct scope can create users.
   if (req.user.role === 'sub-admin') {
     if (
@@ -93,8 +96,8 @@ exports.createNewUser = async (req, res) => {
     await user.save();
 
     res.status(201).json({ msg: `${role.charAt(0).toUpperCase() + role.slice(1)} user created successfully.` });
-  } catch(err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
   }
 };

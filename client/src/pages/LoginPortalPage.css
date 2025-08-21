@@ -1,15 +1,98 @@
-.portal-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: var(--light-color); padding: 2rem; }
-.portal-card { width: 100%; max-width: 800px; background-color: #fff; padding: 3rem; border-radius: 12px; box-shadow: var(--shadow); text-align: center; }
-.portal-header h1 { font-size: 2.5rem; color: var(--dark-color); }
-.portal-header p { color: var(--secondary-color); font-size: 1.1rem; margin-bottom: 2.5rem; }
-.role-selection-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
-.role-card { padding: 2rem; border-radius: 8px; text-decoration: none; color: #fff; transition: all 0.3s ease; transform: translateY(0); }
-.role-card:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1.75rem 0 rgba(58,59,69,.25); }
-.role-card .role-icon { font-size: 3.5rem; margin-bottom: 1rem; }
-.role-card h3 { font-size: 1.5rem; font-weight: 600; }
+.portal-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--light-color);
+  padding: 2rem;
+}
+
+.portal-card {
+  width: 100%;
+  max-width: 900px; /* Can be a bit wider */
+  background-color: #fff;
+  padding: 3rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.portal-header h1 {
+  font-size: 2.5rem;
+  color: var(--dark-color);
+}
+
+.portal-header p {
+  color: var(--secondary-color);
+  font-size: 1.1rem;
+  margin-bottom: 2.5rem;
+}
+
+/* --- THIS IS THE CORRECTED LAYOUT --- */
+.role-selection-grid {
+  display: flex;
+  justify-content: center; /* This centers the cards horizontally */
+  gap: 1.5rem;
+  flex-wrap: wrap; /* Allows cards to wrap on smaller screens */
+}
+
+.role-card {
+  /*flex: 1; <-- REMOVED: This was causing the stretching */
+  width: 220px; /* <-- ADDED: Give each card a fixed base width */
+  min-height: 220px; /* <-- ADDED: Ensures cards are a nice square shape */
+  padding: 2rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #fff;
+  transition: all 0.3s ease;
+  transform: translateY(0);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.role-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1.75rem 0 rgba(58, 59, 69, 0.25);
+}
+
+.role-card .role-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.role-card h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.role-action-text {
+  font-weight: 600;
+  opacity: 0.8;
+}
+
 .role-card.student { background: linear-gradient(45deg, #4e73df, #224abe); }
 .role-card.faculty { background: linear-gradient(45deg, #1cc88a, #13855c); }
 .role-card.admin { background: linear-gradient(45deg, #e74a3b, #a71d2a); }
-.portal-footer { margin-top: 2.5rem; }
-.portal-footer a { color: var(--secondary-color); text-decoration: none; font-weight: 600; }
-.portal-footer a:hover { color: var(--primary-color); }
+
+.portal-footer {
+  margin-top: 2.5rem;
+}
+
+.portal-footer a {
+  color: var(--secondary-color);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.portal-footer a:hover {
+  color: var(--primary-color);
+}
+
+/* Responsive adjustment to stack the cards is now handled by flex-wrap */
+/* No need for a separate media query for this part anymore */

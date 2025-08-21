@@ -8,7 +8,7 @@ import './ProfilePage.css';
 
 const ProfilePage = () => {
   const { user, loadUser, logout } = useContext(AuthContext);
-  
+
   // State for forms
   const [name, setName] = useState(user?.name || ''); // Initialize safely
   const [passwordData, setPasswordData] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
@@ -72,7 +72,7 @@ const ProfilePage = () => {
     }
   };
 
-  
+
   const handleImageUpload = async (e) => {
     e.preventDefault();
     if (!newImage) return;
@@ -94,7 +94,7 @@ const ProfilePage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    clearMessages(); 
+    clearMessages();
     setLoadingDelete(true);
     try {
       await axios.delete('/api/profile/me');
@@ -109,34 +109,41 @@ const ProfilePage = () => {
   if (!user) {
     return <div className="error-state">Could not load user profile.</div>;
   }
-  
+
   const isDeleteDisabled = deleteConfirm !== user.name;
   const API_URL = 'http://localhost:5000';
 
+  const avatarSrc = imagePreview
+    ? imagePreview
+    : user.profilePicture === '/uploads/default.png'
+      // If it's the default, generate a DiceBear URL
+      ? `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}&backgroundColor=4e73df&fontSize=35&radius=50`
+      // Otherwise, use the uploaded image path
+      : `${API_URL}${user.profilePicture}`;
   return (
     <div className="profile-container">
       <div className="profile-header-card">
         <div className="avatar-upload-container">
-          <img 
-            src={imagePreview || `${API_URL}${user.profilePicture}`} 
+          <img
+            src={avatarSrc}
             alt="User Avatar"
             className="profile-avatar-large"
           />
           <label htmlFor="image-upload" className="avatar-edit-icon"><FaCamera /></label>
-          <input id="image-upload" type="file" accept="image/png, image/jpeg" onChange={handleImageChange} style={{display: 'none'}}/>
+          <input id="image-upload" type="file" accept="image/png, image/jpeg" onChange={handleImageChange} style={{ display: 'none' }} />
         </div>
         <div className="profile-header-info">
           <h1>{user.name}</h1>
           <p><span className={`role-badge profile-role ${user.role}`}>{user.role}</span> &bull; Joined {format(new Date(user.createdAt), 'MMMM yyyy')}</p>
           {newImage && (
             <button className="btn-upload-confirm" onClick={handleImageUpload} disabled={loadingImage}>
-              {loadingImage ? <Spinner/> : 'Confirm Upload'}
+              {loadingImage ? <Spinner /> : 'Confirm Upload'}
             </button>
           )}
         </div>
       </div>
 
-      { (success || error) && (
+      {(success || error) && (
         <div className={`profile-message ${success ? 'success' : 'error'}`}>
           <span>{success || error}</span>
           <button onClick={handleMessageDismiss} className="dismiss-btn"><FaTimes /></button>
@@ -161,9 +168,9 @@ const ProfilePage = () => {
           <div className="card-header"><h3><FaLock /> Change Password</h3></div>
           <div className="card-body">
             <form onSubmit={handlePasswordChange}>
-              <div className="form-group"><label htmlFor="oldPassword">Current Password</label><input type="password" id="oldPassword" value={passwordData.oldPassword} onChange={e => setPasswordData({...passwordData, oldPassword: e.target.value})} required /></div>
-              <div className="form-group"><label htmlFor="newPassword">New Password</label><input type="password" id="newPassword" value={passwordData.newPassword} onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})} required /></div>
-              <div className="form-group"><label htmlFor="confirmPassword">Confirm New Password</label><input type="password" id="confirmPassword" value={passwordData.confirmPassword} onChange={e => setPasswordData({...passwordData, confirmPassword: e.target.value})} required /></div>
+              <div className="form-group"><label htmlFor="oldPassword">Current Password</label><input type="password" id="oldPassword" value={passwordData.oldPassword} onChange={e => setPasswordData({ ...passwordData, oldPassword: e.target.value })} required /></div>
+              <div className="form-group"><label htmlFor="newPassword">New Password</label><input type="password" id="newPassword" value={passwordData.newPassword} onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })} required /></div>
+              <div className="form-group"><label htmlFor="confirmPassword">Confirm New Password</label><input type="password" id="confirmPassword" value={passwordData.confirmPassword} onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} required /></div>
               <button type="submit" className="btn-profile" disabled={loadingPassword}>
                 {loadingPassword ? <Spinner /> : 'Update Password'}
               </button>
