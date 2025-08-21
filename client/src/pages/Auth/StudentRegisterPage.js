@@ -5,7 +5,6 @@ import AuthForm from '../../components/Auth/AuthForm';
 import AuthPageLayout from '../../layouts/AuthPageLayout';
 
 const StudentRegisterPage = () => {
-  // UPDATED: Add confirmPassword to the state
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,25 +13,18 @@ const StudentRegisterPage = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    // UPDATED: Add password match validation
+    setIsLoading(true); setError('');
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.');
       setIsLoading(false);
       return;
     }
-
     const success = await register({ name: formData.name, email: formData.email, password: formData.password, role: 'student' });
-    
     if (success) {
       navigate('/dashboard');
-      window.location.reload();
     } else {
-      setError('Registration failed. This email may already be in use.');
+      setError('Registration failed. Email may be invalid or already in use.');
     }
-    
     setIsLoading(false);
   };
 
@@ -50,5 +42,4 @@ const StudentRegisterPage = () => {
     </AuthPageLayout>
   );
 };
-
 export default StudentRegisterPage;

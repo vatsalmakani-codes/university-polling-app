@@ -4,7 +4,25 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['student', 'faculty', 'admin'], default: 'student' },
+  role: {
+    type: String,
+    enum: ['student', 'faculty', 'sub-admin', 'super-admin'],
+    required: true,
+  },
+  profilePicture: {
+    type: String,
+    default: '/uploads/default.png',
+  },
+  // --- NEW PERMISSIONS FIELDS ---
+  managedScope: { // For sub-admins who manage user types
+    type: String,
+    enum: ['STUDENT', 'FACULTY', 'BOTH', 'NONE'],
+    default: 'NONE',
+  },
+  managedPolls: [{ // For sub-admins who manage specific polls
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Poll'
+  }],
   createdAt: { type: Date, default: Date.now },
 });
 

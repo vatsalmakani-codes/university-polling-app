@@ -11,6 +11,9 @@
 /server/.env
 /client/.env.local
 
+# User Uploads
+/server/uploads
+
 # Log files
 npm-debug.log*
 yarn-debug.log*

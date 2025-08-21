@@ -102,6 +102,16 @@
   white-space: normal;
   max-width: 300px;
 }
+.role-badge {
+  padding: .25em .6em; font-size: 75%; font-weight: 700;
+  text-align: center; white-space: nowrap;
+  border-radius: .35rem; color: #fff; text-transform: capitalize;
+}
+.role-badge.student { background-color: var(--primary-color); }
+.role-badge.faculty { background-color: var(--success-color); }
+.role-badge.sub-admin { background-color: #f6c23e; }
+.role-badge.super-admin { background-color: var(--danger-color); }
+
 
 .actions-cell {
   display: flex;
@@ -131,3 +141,56 @@
       "polls";
   }
 }
+
+
+/* --- Main Layout & Header --- */
+.admin-dashboard { padding: 1.5rem; }
+.d-flex { display: flex; }
+.justify-content-between { justify-content: space-between; }
+.align-items-center { align-items: center; }
+
+/* --- Stat Cards --- */
+.stat-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
+.stat-card { background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1.5rem; border-left: 4px solid; }
+.stat-card:nth-child(1) { border-color: var(--primary-color); }
+.stat-card:nth-child(2) { border-color: #36b9cc; }
+.stat-card:nth-child(3) { border-color: var(--success-color); }
+.stat-card:nth-child(4) { border-color: #f6c23e; }
+.stat-icon { font-size: 2.5rem; color: #dddfeb; }
+.stat-info .stat-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--secondary-color); margin-bottom: 0.25rem; display: block; }
+.stat-info .stat-number { font-size: 1.5rem; font-weight: 700; color: var(--dark-color); }
+
+/* --- Tab Navigation --- */
+.dashboard-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+.tab-btn { padding: 0.75rem 1.25rem; border: none; background: none; cursor: pointer; font-size: 1rem; font-weight: 600; color: var(--secondary-color); position: relative; bottom: -1px; }
+.tab-btn.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
+
+/* --- Filters & Tables --- */
+.filter-bar { margin-bottom: 1rem; }
+.search-input { display: flex; align-items: center; background: #f8f9fc; border: 1px solid var(--border-color); border-radius: 50px; padding: 0 1rem; }
+.search-input svg { color: #b7b9cc; }
+.search-input input { border: none; background: transparent; padding: 0.6rem; outline: none; width: 100%; font-size: 0.9rem; }
+.header-actions { display: flex; gap: 0.5rem; }
+.btn-create-poll-header, .btn-create-user { padding: .375rem .75rem; font-size: .8rem; border-radius: .25rem; text-decoration: none; color: #fff; background-color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem; border: none; cursor: pointer; }
+.btn-create-poll-header:hover, .btn-create-user:hover { background-color: var(--primary-hover-color); }
+
+.poll-question-cell, .feedback-comment-cell { white-space: normal; max-width: 300px; }
+.role-badge { padding: .25em .6em; font-size: 75%; font-weight: 700; text-align: center; white-space: nowrap; border-radius: .35rem; color: #fff; text-transform: capitalize; }
+.role-badge.student { background-color: var(--primary-color); }
+.role-badge.faculty { background-color: var(--success-color); }
+.role-badge.sub-admin { background-color: #f6c23e; }
+.role-badge.super-admin { background-color: var(--danger-color); }
+
+.actions-cell { display: flex; gap: 0.5rem; }
+.btn-action { background: none; border: none; cursor: pointer; padding: 0.5rem; font-size: 1rem; border-radius: 50%; display: flex; transition: background-color 0.2s; }
+.btn-action.reset { color: #f6c23e; }
+.btn-action.reset:hover { background-color: #fff8e1; }
+.btn-action.delete { color: var(--danger-color); }
+.btn-action.delete:hover { background-color: #f8d7da; }
+.btn-action.live { color: #36b9cc; }
+.btn-action.live:hover { background-color: #e1f6f9; }
+.btn-action.manage { color: var(--primary-color); }
+.btn-action.manage:hover { background-color: #e7f1ff; }
+.btn-action.feature { color: #dddfeb; }
+.btn-action.feature.featured { color: #f6c23e; }
+.btn-action.feature:hover { background-color: #fff8e1; }

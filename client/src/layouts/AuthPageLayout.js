@@ -1,13 +1,9 @@
-import { FaArrowLeft } from 'react-icons/fa';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
 import './AuthPageLayout.css';
 
-// Reusable Logo Component
-const Logo = () => (
-    <div className="auth-logo">
-        📊 PollingSys
-    </div>
-);
+const Logo = () => (<div className="auth-logo">📊 PollingSys</div>);
 
 const AuthPageLayout = ({ children }) => {
   return (
@@ -22,11 +18,10 @@ const AuthPageLayout = ({ children }) => {
       <div className="auth-panel-right">
         {children}
         <div className="auth-back-link">
-          <Link to="/login" onClick={()=> window.location.reload()}><FaArrowLeft /> Back to Role Selection</Link>
+          <Link to="/login"><FaArrowLeft /> Back to Role Selection</Link>
         </div>
       </div>
     </div>
   );
 };
-
 export default AuthPageLayout;

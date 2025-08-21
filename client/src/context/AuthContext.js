@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export const AuthContext = createContext();
@@ -6,6 +6,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // --- CRITICAL CHANGE: Start isLoading as true ---
   const [isLoading, setIsLoading] = useState(true);
 
   const setAuthToken = (token) => {
@@ -18,7 +19,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loadUser = async () => {
+  const loadUser = useCallback(async (isInitialLoad = false) => {
+    // Only set loading to true on refetches, not the very first load
+    if (!isInitialLoad) {
+      setIsLoading(true);
+    }
+    
     const token = localStorage.getItem('token');
     if (token) {
       setAuthToken(token);
@@ -31,38 +37,39 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
         setUser(null);
       }
+    } else {
+      // If no token, we know they're not authenticated
+      setIsAuthenticated(false);
+      setUser(null);
     }
+    // This is the most important part. isLoading is only set to false
+    // after the entire check is complete.
     setIsLoading(false);
-  };
-  
-  useEffect(() => {
-    loadUser();
   }, []);
 
-  const login = async (email, password) => {
-    const config = { headers: { 'Content-Type': 'application/json' } };
-    const body = JSON.stringify({ email, password });
+  useEffect(() => {
+    // Pass true for the initial load
+    loadUser(true);
+  }, [loadUser]);
+
+  const login = async (email, password, role) => {
     try {
-      const res = await axios.post('/api/auth/login', body, config);
+      const res = await axios.post('/api/auth/login', { email, password, role });
       setAuthToken(res.data.token);
       await loadUser();
       return true;
     } catch (err) {
-      console.error(err.response.data);
       return false;
     }
   };
 
-  const register = async ({ name, email, password, role }) => {
-    const config = { headers: { 'Content-Type': 'application/json' } };
-    const body = JSON.stringify({ name, email, password, role });
+  const register = async (userData) => {
     try {
-      const res = await axios.post('/api/auth/register', body, config);
+      const res = await axios.post('/api/auth/register', userData);
       setAuthToken(res.data.token);
       await loadUser();
       return true;
     } catch (err) {
-      console.error(err.response.data);
       return false;
     }
   };
@@ -74,7 +81,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, register, logout, loadUser }}>
       {children}
     </AuthContext.Provider>
   );

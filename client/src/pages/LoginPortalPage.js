@@ -32,5 +32,4 @@ const LoginPortalPage = () => {
     </div>
   );
 };
-
 export default LoginPortalPage;

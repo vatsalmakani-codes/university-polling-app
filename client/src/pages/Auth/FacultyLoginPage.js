@@ -13,26 +13,20 @@ const FacultyLoginPage = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    
-    // Attempt to log in with the 'faculty' role
+    setIsLoading(true); setError('');
     const success = await login(formData.email, formData.password, 'faculty');
-    
     if (success) {
-      navigate('/dashboard'); // Redirect to the main dashboard on success
-      window.location.reload();
+      navigate('/dashboard');
     } else {
-      setError('Invalid credentials or role mismatch. Please try again.');
+      setError('Invalid credentials or role mismatch.');
     }
-    
     setIsLoading(false);
   };
 
   return (
     <AuthPageLayout>
       <AuthForm
-        isLogin={true}
+        isLogin
         role="faculty"
         formData={formData}
         setFormData={setFormData}
@@ -43,5 +37,4 @@ const FacultyLoginPage = () => {
     </AuthPageLayout>
   );
 };
-
 export default FacultyLoginPage;

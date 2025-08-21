@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import AuthForm from '../../components/Auth/AuthForm';
-import AuthPageLayout from '../../layouts/AuthPageLayout'; // <-- Import the new layout
+import AuthPageLayout from '../../layouts/AuthPageLayout';
 
 const StudentLoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -17,7 +17,6 @@ const StudentLoginPage = () => {
     const success = await login(formData.email, formData.password, 'student');
     if (success) {
       navigate('/dashboard');
-      window.location.reload();
     } else {
       setError('Invalid credentials or role mismatch.');
     }

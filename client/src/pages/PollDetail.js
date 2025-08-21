@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Spinner from '../components/Spinner';
+import FeedbackModal from '../components/modals/FeedbackModal';
 import { FaUser, FaClock, FaChartBar, FaCheck, FaInfoCircle } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
@@ -19,13 +20,14 @@ const PollDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   
   const { id } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const fetchPoll = async () => {
-    setIsLoading(true);
+    // Don't set loading to true on refetch to avoid screen flash
     try {
       const res = await axios.get(`/api/polls/${id}`);
       setPoll(res.data.poll);
@@ -38,6 +40,7 @@ const PollDetail = () => {
       setIsLoading(false);
     }
   };
+  
   useEffect(() => {
     fetchPoll();
   }, [id, navigate]);
@@ -59,7 +62,8 @@ const PollDetail = () => {
     setError('');
     try {
       await axios.post(`/api/polls/${id}/vote`, { optionIds: selectedOptions });
-      fetchPoll(); // Refetch to show results
+      setShowFeedbackModal(true); // Show feedback modal on successful vote
+      fetchPoll(); // Refetch to update the view to results
     } catch (err) {
       setError(err.response?.data?.msg || 'Error submitting vote.');
     } finally {
@@ -68,7 +72,7 @@ const PollDetail = () => {
   };
 
   const chartData = useMemo(() => {
-    if (!poll?.options) return null;
+    if (!poll?.options || resultsHidden) return null;
     const labels = poll.options.map(opt => opt.optionText);
     const data = poll.options.map(opt => opt.votes || 0);
     const maxVotes = Math.max(...data, 0);
@@ -83,14 +87,15 @@ const PollDetail = () => {
         borderWidth: 2, borderRadius: 5, borderSkipped: false,
       }],
     };
-  }, [poll, userVote]);
+  }, [poll, userVote, resultsHidden]);
 
   if (isLoading) return <Spinner fullscreen text="Loading Poll..." />;
   if (!poll) return <div className="error-state">Poll not found.</div>;
 
   const totalVotes = poll.options?.reduce((acc, option) => acc + (option.votes || 0), 0) || 0;
   const hasVoted = userVote.length > 0;
-  
+  const canVote = user.role !== 'admin' && poll.status === 'ACTIVE' && new Date(poll.expiresAt) > new Date();
+
   const renderVotingOptions = () => (
     <div className="voting-section">
       <p className="voting-instructions">Select your option(s) below and cast your vote.</p>
@@ -140,24 +145,25 @@ const PollDetail = () => {
     );
   };
   
-  const canVote = user.role !== 'admin' && poll.status === 'ACTIVE' && new Date(poll.expiresAt) > new Date();
-
   return (
-    <div className="poll-detail-container">
-      <div className='poll-detail-card'>
-        <div className="poll-header-info">
-          <h2>{poll.question}</h2>
-          <span className="poll-type-badge">{(poll.pollType || '').replace('_', ' ')}</span>
+    <>
+      {showFeedbackModal && <FeedbackModal pollId={id} closeModal={() => setShowFeedbackModal(false)} />}
+      <div className="poll-detail-container">
+        <div className='poll-detail-card'>
+          <div className="poll-header-info">
+            <h2>{poll.question}</h2>
+            <span className="poll-type-badge">{(poll.pollType || '').replace('_', ' ')}</span>
+          </div>
+          <div className="poll-meta-stats">
+            <div className="stat-item"><FaUser /><span><strong>Creator</strong><br />{poll.createdBy?.name || 'Unknown'}</span></div>
+            <div className="stat-item"><FaClock /><span><strong>Ends</strong><br />{format(new Date(poll.expiresAt), 'MMM d, yyyy')}</span></div>
+            <div className="stat-item"><FaChartBar /><span><strong>Total Votes</strong><br />{resultsHidden ? 'Hidden' : totalVotes}</span></div>
+          </div>
+          
+          {canVote && !hasVoted ? renderVotingOptions() : renderResults()}
         </div>
-        <div className="poll-meta-stats">
-          <div className="stat-item"><FaUser /><span><strong>Creator</strong><br />{poll.createdBy?.name || 'Unknown'}</span></div>
-          <div className="stat-item"><FaClock /><span><strong>Ends</strong><br />{format(new Date(poll.expiresAt), 'MMM d, yyyy')}</span></div>
-          <div className="stat-item"><FaChartBar /><span><strong>Total Votes</strong><br />{resultsHidden ? 'Hidden' : totalVotes}</span></div>
-        </div>
-        
-        {canVote && !hasVoted ? renderVotingOptions() : renderResults()}
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,9 +1,10 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import {
-  FaShieldAlt, FaMobileAlt, FaLock, FaEnvelope, FaUniversalAccess,
+  FaShieldAlt, FaMobileAlt, FaLock, FaEnvelope, FaUniversalAccess, 
   FaChartPie, FaStar, FaQuoteLeft
 } from 'react-icons/fa';
 import './LandingPage.css';
@@ -24,30 +25,48 @@ const FeatureCard = ({ icon, title, children }) => (
   </motion.div>
 );
 
-const TestimonialCard = ({ stars, text, author }) => (
+const TestimonialCard = ({ stars, text, author, avatar }) => (
   <motion.div className="testimonial-card" variants={fadeInUp}>
     <FaQuoteLeft className="quote-icon" />
     <div className="stars">{Array(stars).fill(0).map((_, i) => <FaStar key={i} />)}</div>
-    <p className="quote">{text}</p>
-    <span className="author">- {author}</span>
+    <p className="quote">"{text}"</p>
+    <div className="author-info">
+      <img src={`http://localhost:5000${avatar}`} alt={author} className="author-avatar" />
+      <span className="author">- {author}</span>
+    </div>
   </motion.div>
 );
 
 const LandingPage = () => {
   const { isAuthenticated } = useContext(AuthContext);
+  const [testimonials, setTestimonials] = useState([]);
+  const [publicProfiles, setPublicProfiles] = useState([]);
 
   useEffect(() => {
+    // Add scroll listener for navbar effect
     const handleScroll = () => {
       const nav = document.querySelector('.landing-nav');
       if (nav) {
-        if (window.scrollY > 50) {
-          nav.classList.add('scrolled');
-        } else {
-          nav.classList.remove('scrolled');
-        }
+        nav.classList.toggle('scrolled', window.scrollY > 50);
       }
     };
     window.addEventListener('scroll', handleScroll);
+
+    // Fetch featured feedback and public profiles for social proof
+    const fetchData = async () => {
+      try {
+        const [feedbackRes, profilesRes] = await Promise.all([
+          axios.get('/api/feedback/featured'),
+          axios.get('/api/users/public-profiles')
+        ]);
+        setTestimonials(feedbackRes.data);
+        setPublicProfiles(profilesRes.data);
+      } catch (error) {
+        console.error("Failed to fetch landing page data:", error);
+      }
+    };
+    fetchData();
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -67,7 +86,6 @@ const LandingPage = () => {
         </div>
       </nav>
 
-
       <motion.section className="landing-hero" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
         <div className="hero-content">
           <motion.h1 variants={fadeInUp}>Your Voice, Your Choice: Empower Change Today!</motion.h1>
@@ -79,19 +97,18 @@ const LandingPage = () => {
           </motion.div>
           <motion.div className="social-proof" variants={fadeInUp} transition={{ delay: 0.6 }}>
             <div className="avatars">
-              <img src="https://api.dicebear.com/7.x/initials/svg?seed=Jane" alt="avatar" />
-              <img src="https://api.dicebear.com/7.x/initials/svg?seed=John" alt="avatar" />
-              <img src="https://api.dicebear.com/7.x/initials/svg?seed=Alex" alt="avatar" />
+              {publicProfiles.map(profile => (
+                <img key={profile._id} src={`http://localhost:5000${profile.profilePicture}`} alt={profile.name} title={profile.name} />
+              ))}
             </div>
             <span>Trusted by students and faculty across the university.</span>
           </motion.div>
         </div>
       </motion.section>
 
-      <motion.section
+      <motion.section 
         className="landing-features-detailed"
-        initial="initial"
-        whileInView="animate"
+        initial="initial" whileInView="animate"
         viewport={{ once: true, amount: 0.2 }}
         transition={{ staggerChildren: 0.1 }}
       >
@@ -103,16 +120,15 @@ const LandingPage = () => {
           <FeatureCard icon={<FaShieldAlt />} title="Secure Voting">Each voter has a unique ID and can only vote once, ensuring fair and accurate results.</FeatureCard>
           <FeatureCard icon={<FaMobileAlt />} title="Mobile Ready">Our platform is optimized for all devices. Vote from a web browser anywhere, anytime.</FeatureCard>
           <FeatureCard icon={<FaLock />} title="256-Bit Encryption">All activity has SSL (https://) grade security that keeps your data and ballots secure.</FeatureCard>
-          <FeatureCard icon={<FaEnvelope />} title="Email Notifications">We'll notify voters when an election launches so they never miss a chance to participate.</FeatureCard>
+          <FeatureCard icon={<FaEnvelope />} title="Email Notifications">Admins can notify you when a new election launches, so you never miss a chance to participate.</FeatureCard>
           <FeatureCard icon={<FaUniversalAccess />} title="Accessibility">The voting application targets Section 508 and WCAG 2.0 AA compliance for inclusivity.</FeatureCard>
           <FeatureCard icon={<FaChartPie />} title="Instant Results">Results are automatically calculated and presented with beautiful, easy-to-read charts.</FeatureCard>
         </div>
       </motion.section>
 
-      <motion.section
+      <motion.section 
         className="landing-testimonials"
-        initial="initial"
-        whileInView="animate"
+        initial="initial" whileInView="animate"
         viewport={{ once: true, amount: 0.2 }}
         transition={{ staggerChildren: 0.1 }}
       >
@@ -120,16 +136,21 @@ const LandingPage = () => {
           <h2 className="section-title">What Our Users Think</h2>
         </div>
         <div className="testimonials-grid">
-          <TestimonialCard stars={5} author="Anonymous Student">I appreciate the security I find in this platform. I know my vote is anonymous and counts.</TestimonialCard>
-          <TestimonialCard stars={4} author="Anonymous Faculty">Now that I don't have to manage paper ballots, gathering feedback is a breeze. This is the best thing I've seen for a long time.</TestimonialCard>
-          <TestimonialCard stars={5} author="Anonymous Student">What a relief! The system alerts me when a new vote session opens. I no longer worry about missing my opportunity.</TestimonialCard>
+          {testimonials.length > 0 ? testimonials.map(item => (
+            <TestimonialCard 
+              key={item._id}
+              stars={item.rating}
+              text={item.comment}
+              author={item.user.name}
+              avatar={item.user.profilePicture}
+            />
+          )) : <p>No featured feedback yet. Be the first to share your thoughts!</p>}
         </div>
       </motion.section>
 
-      <motion.section
+      <motion.section 
         className="cta-section"
-        initial="initial"
-        whileInView="animate"
+        initial="initial" whileInView="animate"
         viewport={{ once: true, amount: 0.5 }}
       >
         <motion.div variants={fadeInUp} className="cta-content">
@@ -138,50 +159,15 @@ const LandingPage = () => {
           <Link to="/login" className="btn-cta-secondary">Create Your Account</Link>
         </motion.div>
       </motion.section>
-
-
+      
       <footer className="landing-footer">
         <div className="footer-container">
           <div className="footer-grid">
-            {/* Column 1: Brand Info */}
-            <div className="footer-column">
-              <h4>📊 PollingSys</h4>
-              <p>
-                Your elections. Any device. Any location. On time. Empowering student
-                and faculty voices through secure and accessible digital polling.
-              </p>
-            </div>
-
-            {/* Column 2: Quick Links */}
-            <div className="footer-column">
-              <h5>Quick Links</h5>
-              <ul>
-                <li><Link to="/">Home</Link></li>
-                <li><Link to="/login">Login Portal</Link></li>
-                <li><Link to="/login">Register</Link></li>
-              </ul>
-            </div>
-
-            {/* Column 3: Resources */}
-            <div className="footer-column">
-              <h5>Resources</h5>
-              <ul>
-                <li><Link to="/contact">Support</Link></li>
-                <li><Link to="/about">About Us</Link></li>
-                <li><a href="#features">Features</a></li> {/* You can add an ID to your features section to link to it */}
-              </ul>
-            </div>
+            <div className="footer-column"><h4>📊 PollingSys</h4><p>Your elections. Any device. Any location. On time.</p></div>
+            <div className="footer-column"><h5>Quick Links</h5><ul><li><Link to="/">Home</Link></li><li><Link to="/login">Login</Link></li><li><Link to="/login">Register</Link></li></ul></div>
+            <div className="footer-column"><h5>Resources</h5><ul><li><Link to="/contact">Support</Link></li><li><Link to="/about">About Us</Link></li></ul></div>
           </div>
-
-          {/* Bottom Bar */}
-          <div className="footer-bottom">
-            <p>&copy; {new Date().getFullYear()} PollingSys. All Rights Reserved.</p>
-            <div className="footer-legal-links">
-              <Link to="#">Terms of Service</Link>
-              <span>|</span>
-              <Link to="#">Privacy Policy</Link>
-            </div>
-          </div>
+          <div className="footer-bottom"><p>&copy; {new Date().getFullYear()} PollingSys. All Rights Reserved.</p></div>
         </div>
       </footer>
     </div>

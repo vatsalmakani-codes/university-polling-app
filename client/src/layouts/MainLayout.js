@@ -16,5 +16,4 @@ const MainLayout = ({ children }) => {
     </div>
   );
 };
-
 export default MainLayout;

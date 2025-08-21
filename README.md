@@ -1,52 +1,66 @@
-# University Student Polling System
+# University Polling System 
 
-A full-stack MERN application designed for universities to conduct polls among students and faculty. The system features role-based access control, multiple poll types, and an advanced admin dashboard with data visualization and reporting.
+A secure, full-stack MERN application designed for universities to conduct polls. This platform features a sophisticated role-based access control system, real-time engagement tracking for administrators, and a professional, fully responsive user interface.
 
-## Key Features
+---
 
-### Three User Roles:
+## Core Features
+
+### Role-Based Architecture
 *   **Student:**
-    *   View and vote on available polls (single or multiple choice).
-    *   View poll results graphically after voting.
-    *   View personal voting history.
-    *   Manage their own profile (update name, change password, delete account).
+    *   Can vote on polls targeted to them by administrators.
+    *   View published poll results graphically.
+    *   View a personal history of all their cast votes.
+    *   Manage their own profile, including uploading a profile picture.
+    *   Submit feedback and ratings after voting.
 *   **Faculty:**
-    *   All student permissions.
-    *   Create new polls (single or multiple choice).
-    *   View results for polls they have created.
-*   **Admin:**
-    *   View a comprehensive dashboard with system statistics (total users, polls, votes).
-    *   Visualize user role distribution with dynamic charts.
-    *   Manage all users and polls (filter, search, and delete).
-    *   Export dashboard reports as a PDF.
+    *   Can participate in faculty-specific polls.
+    *   View published poll results.
+    *   View a history of polls they have been involved in.
+    *   Manage their own profile and picture.
+*   **Sub-Admin:**
+    *   A limited administrator assigned to manage either **Students** or **Faculty**.
+    *   Can add new users and delete users within their assigned scope.
+    *   Can create polls for their assigned audience.
+    *   *Cannot vote or see live poll results.*
+*   **Super Admin:**
+    *   Has **full control** over the entire system.
+    *   Can manage all users, including creating and managing Sub-Admins.
+    *   Can manage the entire lifecycle of any poll (create, close, extend deadline, publish results).
+    *   Has exclusive access to the **live engagement view** for active polls.
+    *   Can manage user feedback and "feature" it on the landing page.
 
-### Advanced Features:
-*   **Multiple Poll Types:** Supports both "Single Choice" and "Multiple Choice" voting.
-*   **Dynamic UI:** The interface intelligently shows voting status and role-specific actions.
-*   **Secure Authentication:** Uses JSON Web Tokens (JWT) for secure user sessions.
-*   **Data Visualization:** The admin dashboard and poll results pages use Chart.js for graphical representation.
-*   **PDF Export:** Admins can export a full snapshot of the dashboard analytics.
+### Advanced Functionality
+*   **Secure Registration:** User registration is restricted to **`.edu` email addresses only**.
+*   **Profile Pictures:** Users can upload their own profile pictures, which are stored on the server.
+*   **Admin-Centric Poll Lifecycle:** Admins create all polls and control their status. Results are **hidden by default** until an admin explicitly publishes them.
+*   **Live Engagement View:** A dedicated "mission control" page for Super Admins to watch poll results update in real-time via **WebSockets (Socket.IO)**.
+*   **Real Feedback Loop:** After voting, users can submit feedback. Admins can then "feature" the best comments, which are dynamically displayed on the public landing page with the user's real profile picture.
+*   **Dynamic UI:** The interface intelligently shows voting status and role-specific actions, and uses a professional dashboard layout with a sidebar and topbar for authenticated users.
+
+### Professional UI/UX
+*   **Modern Design:** A clean, professional UI inspired by modern dashboards, using a consistent design system.
+*   **Animated Interface:** Smooth page transitions and on-scroll animations powered by **Framer Motion**.
 *   **Fully Responsive Design:** A seamless experience on desktop, tablet, and mobile devices.
+*   **Data Visualization:** Interactive charts from **Chart.js** are used for poll results and the admin dashboard.
 
 ---
 
 ## Tech Stack
 
-*   **Frontend:** React.js, React Router, Context API (for state management), Chart.js, Axios
-*   **Backend:** Node.js, Express.js
-*   **Database:** MongoDB with Mongoose
+*   **Frontend:** React.js, React Router, Context API, Axios, Framer Motion, Chart.js, Socket.IO Client, React Datepicker
+*   **Backend:** Node.js, Express.js, Mongoose
+*   **Database:** MongoDB
+*   **Real-time Communication:** Socket.IO
 *   **Authentication:** JSON Web Tokens (JWT), bcrypt.js
-*   **Deployment:** (e.g., Vercel for frontend, Render for backend)
+*   **File Uploads:** Multer (for local storage)
 
 ---
 
 ## Getting Started
 
-Follow these instructions to get a copy of the project up and running on your local machine.
-
 ### Prerequisites
-
-*   Node.js (v14 or higher)
+*   Node.js (v18 or higher recommended)
 *   npm
 *   MongoDB (local installation or a free cluster from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
 
@@ -58,16 +72,16 @@ Follow these instructions to get a copy of the project up and running on your lo
     cd university-polling-app
     ```
 
-2.  **Install all dependencies for both server and client:**
-    (This single command will run `npm install` in both the `server` and `client` directories)
+2.  **Install all dependencies for server and client:**
+    *(This single command runs `npm install` in both the `server` and `client` directories)*
     ```bash
     npm run install-all
     ```
 
-3.  **Set up Environment Variables:**
+3.  **Set up Server Environment Variables:**
     *   Navigate to the `server` directory.
-    *   Create a `.env` file by duplicating the `.env.example` file.
-    *   Open your `.env` file and add your MongoDB connection string and a JWT secret.
+    *   Create a `.env` file by copying `.env.example`.
+    *   Fill in your `MONGO_URI` and create a long, random `JWT_SECRET`.
 
     ```
     # server/.env
@@ -76,20 +90,54 @@ Follow these instructions to get a copy of the project up and running on your lo
     PORT=5000
     ```
 
-4.  **How to Create an Admin User:**
-    *   Register a new user through the application's register page.
-    *   Connect to your MongoDB database using MongoDB Compass or the Mongo Shell.
-    *   Navigate to the `university_polling` database and the `users` collection.
-    *   Find the user you just created and change their `role` field from `"student"` to `"admin"`.
+4.  **How to Create the First Super Admin:**
+    *   **Method 1 (Temporary Code):**
+        *   Temporarily, in `server/controllers/authController.js`, find the `registerUser` function. After `await user.save();`, add this block:
+            ```javascript
+            // Temporary code to create the first super admin
+            if (email === 'your-super-admin-email@your.edu') {
+                user.role = 'super-admin';
+                await user.save();
+            }
+            ```
+        *   Run the app and register with that specific email via the "Student" or "Faculty" registration page.
+        *   **CRITICAL: Remove this code after creating your first super admin.**
+    *   **Method 2 (Database Edit):**
+        *   Register a normal user.
+        *   Connect to your MongoDB database using MongoDB Compass or the Mongo Shell.
+        *   Navigate to the `university_polling` database and the `users` collection.
+        *   Find the user you just created and change their `role` field from `"student"` to `"super-admin"`.
 
 ### Running the Application
 
-Run the following command from the **root directory** to start both the backend and frontend servers concurrently:
+Run this single command from the **root directory** to start both the backend API and the frontend React app:
 
 ```bash
 npm run dev
 ```
-*   The backend API will be running on `http://localhost:5000`
-*   The frontend React app will open on `http://localhost:3000`
+*   Backend API runs on `http://localhost:5000`
+*   Frontend React App runs on `http://localhost:3000`
 
 ---
+
+## Application Structure
+
+*(A high-level overview of the project's architecture)*
+```
+university-polling-app/
+├── client/ (React Frontend)
+│   ├── src/
+│   │   ├── components/ (Reusable components: Forms, Modals, Layouts)
+│   │   ├── context/ (Global State Management - AuthContext)
+│   │   ├── layouts/ (Main App Layout, Auth Page Layouts)
+│   │   ├── pages/ (All route-based page components)
+│   └── App.js (Master Router)
+│
+└── server/ (Node.js Backend)
+    ├── config/ (Database connection)
+    ├── controllers/ (API logic)
+    ├── middleware/ (Auth, File Uploads)
+    ├── models/ (MongoDB Schemas)
+    ├── routes/ (API Endpoints)
+    └── server.js (Main server entry point)
+```

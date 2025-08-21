@@ -7,8 +7,9 @@
 .poll-detail-card {
   background: #fff;
   padding: 2.5rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
 }
 
 /* --- Header & Stats --- */
@@ -41,8 +42,8 @@
   text-align: center;
   padding: 1.5rem 0;
   margin-bottom: 2.5rem;
-  border-top: 1px solid #f0f0f0;
-  border-bottom: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 .stat-item {
   display: flex;
@@ -77,8 +78,7 @@
 .radio-icon, .checkbox-icon {
   width: 22px; height: 22px; border: 2px solid #adb5bd; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s ease;
-  color: #fff;
+  transition: all 0.2s ease; color: #fff;
 }
 .radio-icon { border-radius: 50%; }
 .checkbox-icon { border-radius: 6px; }
@@ -94,29 +94,31 @@
 .btn-submit-vote:disabled { background-color: #8fd19e; cursor: not-allowed; }
 .poll-error-message { text-align: center; color: var(--danger-color); margin-bottom: 1rem; font-weight: 500; }
 
-/* --- Results Section (Chart) --- */
-.results-section {
-  width: 100%;
+/* --- Results Section (Chart & Hidden Message) --- */
+.results-section { width: 100%; }
+.poll-chart-container { position: relative; height: 350px; width: 100%; }
+
+.results-hidden-message {
+  text-align: center;
+  background-color: var(--light-color);
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
-.poll-chart-container {
-  position: relative;
-  height: 350px; /* Adjust height as needed */
-  width: 100%;
+.results-hidden-message svg { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem; }
+.results-hidden-message h3 { font-size: 1.5rem; color: var(--dark-color); margin-bottom: 0.5rem; }
+.results-hidden-message p { color: var(--secondary-color); }
+.voted-confirmation {
+  margin-top: 1rem;
+  font-weight: 600;
+  color: var(--success-color);
 }
+
 
 /* --- Responsive Adjustments --- */
 @media screen and (max-width: 768px) {
-  .poll-detail-card {
-    padding: 1.5rem;
-  }
-  .poll-header-info h2 {
-    font-size: 1.8rem;
-  }
-  .poll-meta-stats {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  .poll-chart-container {
-    height: 300px;
-  }
+  .poll-detail-card { padding: 1.5rem; }
+  .poll-header-info h2 { font-size: 1.8rem; }
+  .poll-meta-stats { grid-template-columns: 1fr; gap: 1rem; }
+  .poll-chart-container { height: 300px; }
 }

@@ -1,3 +1,4 @@
+/* === BASE MODAL STYLES === */
 .modal-backdrop {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.5); display: flex;
@@ -21,20 +22,29 @@
 .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--secondary-color); }
 
 .modal-body { padding: 1.5rem; }
-.modal-message { padding: .75rem; border-radius: 4px; margin-bottom: 1rem; }
+
+/* === SHARED MODAL ELEMENTS === */
+.modal-message { padding: .75rem; border-radius: 4px; margin-bottom: 1rem; text-align: center; }
 .modal-message.success { background: #d4edda; color: #155724; }
 .modal-message.error { background: #f8d7da; color: #721c24; }
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
-.btn-primary, .btn-secondary { padding: .5rem 1rem; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; min-width: 100px; display:flex; justify-content:center; align-items:center; }
-.btn-primary { background: var(--primary-color); color: #fff; }
-.btn-primary:hover { background: var(--primary-hover-color); }
-.btn-secondary { background: #f8f9fa; color: var(--dark-color); border: 1px solid var(--border-color); }
-.btn-secondary:hover { background: #e2e6ea; }
 
-/* Add these styles to Modal.css */
-.modal-content h4 {
+.btn-primary, .btn-secondary {
+  padding: .5rem 1rem; border: none; border-radius: 4px;
+  font-weight: 600; cursor: pointer; min-width: 100px;
+  display:flex; justify-content:center; align-items:center;
+  gap: 0.5rem; transition: background-color 0.2s ease;
+}
+.btn-primary { background: var(--primary-color); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover-color); }
+.btn-secondary { background: #f8f9fa; color: var(--dark-color); border: 1px solid var(--border-color); }
+.btn-secondary:hover:not(:disabled) { background: #e2e6ea; }
+
+/* === MODAL-SPECIFIC STYLES (used by multiple modals) === */
+.poll-question-preview {
   font-weight: 400;
+  font-style: italic;
   color: var(--secondary-color);
   margin-bottom: 1.5rem;
   border-left: 3px solid var(--primary-color);
@@ -47,4 +57,12 @@
   border: none;
   border-top: 1px solid var(--border-color);
   margin: 1.5rem 0;
+}
+.btn-secondary.published {
+  background-color: var(--success-color);
+  color: #fff;
+  border-color: var(--success-color);
+}
+.btn-secondary.published:hover {
+  background-color: #17a673;
 }

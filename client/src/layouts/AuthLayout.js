@@ -1,3 +1,4 @@
+import React from 'react';
 import './AuthLayout.css';
 
 const AuthLayout = ({ children }) => {
@@ -7,5 +8,4 @@ const AuthLayout = ({ children }) => {
     </div>
   );
 };
-
 export default AuthLayout;

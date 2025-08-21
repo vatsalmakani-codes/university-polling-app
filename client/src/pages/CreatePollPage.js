@@ -3,7 +3,10 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Spinner from '../components/Spinner';
 import DatePicker from 'react-datepicker';
-import { FaPlus, FaTrashAlt, FaListUl, FaCheckDouble, FaUsers, FaUserGraduate, FaChalkboardTeacher } from 'react-icons/fa';
+import { 
+  FaPlus, FaTrashAlt, FaListUl, FaCheckDouble, 
+  FaUsers, FaUserGraduate, FaChalkboardTeacher 
+} from 'react-icons/fa';
 import './CreatePollPage.css';
 
 const CreatePollPage = () => {
@@ -11,7 +14,7 @@ const CreatePollPage = () => {
   const [options, setOptions] = useState(['', '']);
   const [pollType, setPollType] = useState('SINGLE_CHOICE');
   const [targetAudience, setTargetAudience] = useState('STUDENT');
-  const [expiresAt, setExpiresAt] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  const [expiresAt, setExpiresAt] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)); // Default to 1 week from now
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -35,7 +38,7 @@ const CreatePollPage = () => {
     setIsLoading(true);
     try {
       await axios.post('/api/admin/polls', pollData);
-      navigate('/admin');
+      navigate('/admin'); // Redirect to admin dashboard on success
     } catch(err) {
       setError('Failed to create poll. Please check all fields and try again.');
       setIsLoading(false);
@@ -57,17 +60,35 @@ const CreatePollPage = () => {
           <div className="card-body">
             <div className="form-group">
               <label htmlFor="question">Poll Question</label>
-              <textarea id="question" value={question} onChange={e => setQuestion(e.target.value)} required placeholder="e.g., What should be the new theme for the annual fest?" />
+              <textarea 
+                id="question" 
+                value={question} 
+                onChange={e => setQuestion(e.target.value)} 
+                required 
+                placeholder="e.g., What should be the new theme for the annual fest?" 
+              />
             </div>
             <div className="form-group">
               <label>Answer Options</label>
               {options.map((opt, i) => (
                 <div className="option-input-group" key={i}>
-                  <input type="text" value={opt} onChange={e => handleOptionChange(i, e.target.value)} required placeholder={`Option ${i + 1}`} />
-                  {options.length > 2 && <button type="button" className="btn-remove-option" onClick={() => removeOption(i)}><FaTrashAlt /></button>}
+                  <input 
+                    type="text" 
+                    value={opt} 
+                    onChange={e => handleOptionChange(i, e.target.value)} 
+                    required 
+                    placeholder={`Option ${i + 1}`} 
+                  />
+                  {options.length > 2 && (
+                    <button type="button" className="btn-remove-option" onClick={() => removeOption(i)} title="Remove Option">
+                      <FaTrashAlt />
+                    </button>
+                  )}
                 </div>
               ))}
-              <button type="button" className="btn-add-option" onClick={addOption}><FaPlus /> Add Option</button>
+              <button type="button" className="btn-add-option" onClick={addOption} disabled={options.length >= 10}>
+                <FaPlus /> Add Another Option
+              </button>
             </div>
           </div>
         </div>
@@ -92,13 +113,22 @@ const CreatePollPage = () => {
             </div>
             <div className="form-group">
               <label>Set Voting Deadline</label>
-              <DatePicker selected={expiresAt} onChange={date => setExpiresAt(date)} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa" className="date-picker-input"/>
+              <DatePicker 
+                selected={expiresAt} 
+                onChange={date => setExpiresAt(date)} 
+                showTimeSelect 
+                dateFormat="MMMM d, yyyy h:mm aa" 
+                className="date-picker-input"
+                minDate={new Date()}
+              />
             </div>
           </div>
         </div>
         
         <div className="form-actions">
-          <button type="submit" className="btn-submit-poll" disabled={isLoading}>{isLoading ? <Spinner /> : 'Publish Poll'}</button>
+          <button type="submit" className="btn-submit-poll" disabled={isLoading}>
+            {isLoading ? <Spinner /> : 'Publish Poll'}
+          </button>
         </div>
       </form>
     </div>

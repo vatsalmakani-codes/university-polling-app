@@ -14,11 +14,15 @@
   text-decoration: none;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  font-size: 0.9rem;
 }
 .back-link:hover {
   color: var(--primary-color);
 }
-.page-title {
+.page-title.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   max-width: 90%;
 }
 
@@ -82,10 +86,27 @@
 .live-chart-wrapper {
   height: 400px;
 }
+.card-body.no-padding {
+  padding: 0;
+}
+.card-body .table tbody tr:first-child td {
+  border-top: none;
+}
+
 
 /* Responsive Adjustments */
 @media screen and (max-width: 992px) {
   .live-content-grid {
     grid-template-columns: 1fr;
+  }
+}
+@media screen and (max-width: 768px) {
+  .page-header {
+    padding-bottom: 40px; /* Make space for status indicator */
+  }
+  .connection-status {
+    top: auto;
+    bottom: 0;
+    left: 0;
   }
 }

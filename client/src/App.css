@@ -1,5 +1,4 @@
-
-
+@import url('react-datepicker/dist/react-datepicker.css');
 :root {
   --primary-color: #4e73df;
   --primary-hover-color: #2e59d9;
@@ -12,24 +11,23 @@
   --border-color: #e3e6f0;
   --shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15);
 }
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--light-color);
-  color: var(--dark-color);
-  line-height: 1.5;
-}
-
-main {
-  width: 100%;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Nunito', sans-serif; background-color: var(--light-color); color: var(--dark-color); line-height: 1.5; }
+main { width: 100%; }
+.page-header { margin-bottom: 1.5rem; }
+.page-title { font-size: 1.75rem; color: var(--dark-color); font-weight: 400; }
+.page-subtitle { color: var(--secondary-color); }
+.card { background: #fff; border-radius: .35rem; border: 1px solid var(--border-color); box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+.card-header { padding: .75rem 1.25rem; background-color: #f8f9fc; border-bottom: 1px solid var(--border-color); }
+.card-header h3 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--primary-color); }
+.card-body { padding: 1.25rem; }
+.table-responsive { display: block; width: 100%; overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; }
+.table thead th { padding: .75rem; border-bottom: 2px solid var(--border-color); text-align: left; }
+.table tbody td { padding: .75rem; vertical-align: middle; border-top: 1px solid var(--border-color); }
+.error-state { text-align: center; padding: 4rem 2rem; color: var(--danger-color); font-size: 1.2rem; }
+.react-datepicker-wrapper, .react-datepicker__input-container, .date-picker-input { width: 100%; }
+.form-group { margin-bottom: 1.5rem; }
+.form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: .5rem .75rem; border: 1px solid var(--border-color); border-radius: .25rem; font-size: 1rem; }
+.text-center { text-align: center; }

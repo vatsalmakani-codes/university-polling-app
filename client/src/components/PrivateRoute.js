@@ -8,7 +8,7 @@ const PrivateRoute = ({ children, roles }) => {
   const location = useLocation();
 
   if (isLoading) {
-    return <Spinner fullscreen text="Authenticating..." />;
+    return <Spinner fullscreen />;
   }
 
   if (!isAuthenticated) {
@@ -19,8 +19,6 @@ const PrivateRoute = ({ children, roles }) => {
     return <Navigate to="/dashboard" state={{ from: location }} replace />;
   }
 
-
   return children;
 };
-
 export default PrivateRoute;

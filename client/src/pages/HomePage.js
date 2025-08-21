@@ -22,6 +22,7 @@ const HomePage = () => {
         setPolls(res.data);
       } catch (err) {
         setError('Could not fetch polls. Please try again later.');
+        console.error("HomePage fetch error:", err);
       } finally {
         setIsLoading(false);
       }
@@ -37,7 +38,8 @@ const HomePage = () => {
     if (user.role === 'student' && poll.hasVoted) {
       return <span className="status-badge voted">Voted</span>;
     }
-    if (poll.status === 'ACTIVE' && !poll.isExpired) {
+    const isPollActive = poll.status === 'ACTIVE' && !poll.isExpired;
+    if (isPollActive) {
       return <span className="status-badge active">Active</span>;
     }
     return <span className="status-badge closed">Closed</span>;
@@ -46,16 +48,16 @@ const HomePage = () => {
   // Helper function to determine the action button for a poll
   const getActionButton = (poll) => {
     const isPollActive = poll.status === 'ACTIVE' && !poll.isExpired;
-    
+
     if (user.role === 'student') {
       if (isPollActive && !poll.hasVoted) {
-        return <Link to={`/poll/${poll._id}`} className="btn-table-action vote"><FaVoteYea/> Vote Now</Link>;
+        return <Link to={`/poll/${poll._id}`} className="btn-table-action vote"><FaVoteYea /> Vote Now</Link>;
       }
-      return <Link to={`/poll/${poll._id}`} className="btn-table-action view"><FaChartBar/> View Results</Link>;
+      return <Link to={`/poll/${poll._id}`} className="btn-table-action view"><FaChartBar /> View Results</Link>;
     }
-    
-    // For Faculty and Admin
-    return <Link to={`/poll/${poll._id}`} className="btn-table-action view"><FaEye/> View Poll</Link>;
+
+    // For Faculty and Admin, the action is always to view the poll/results
+    return <Link to={`/poll/${poll._id}`} className="btn-table-action view"><FaEye /> View Poll</Link>;
   };
 
   return (

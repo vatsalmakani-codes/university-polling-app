@@ -14,24 +14,21 @@ const AuthForm = ({ isLogin, role, formData, setFormData, onSubmit, isLoading, e
   return (
     <div className="auth-form-card">
       <div className="auth-header">
-      <h2>{isLogin ? 'Login' : 'Register'}</h2>
+        <h2>{isLogin ? 'Login' : 'Register'}</h2>
         <p>as a <span className="role-highlight">{roleTitle}</span></p>
       </div>
       <form onSubmit={onSubmit}>
         {error && <div className="error-message">{error}</div>}
-        
         {!isLogin && (
           <div className="form-group">
             <label htmlFor="name">Full Name</label>
             <input type="text" id="name" name="name" value={formData.name || ''} onChange={onChange} required placeholder="e.g., Jane Doe" />
           </div>
         )}
-        
         <div className="form-group">
-          <label htmlFor="email">University Email</label>
+          <label htmlFor="email">University Email (.edu)</label>
           <input type="email" id="email" name="email" value={formData.email || ''} onChange={onChange} required placeholder="e.g., student@university.edu" />
         </div>
-        
         <div className="form-group">
           <label htmlFor="password">Password</label>
           <div className="password-input-group">
@@ -41,7 +38,6 @@ const AuthForm = ({ isLogin, role, formData, setFormData, onSubmit, isLoading, e
             </span>
           </div>
         </div>
-
         {!isLogin && (
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
@@ -53,7 +49,6 @@ const AuthForm = ({ isLogin, role, formData, setFormData, onSubmit, isLoading, e
             </div>
           </div>
         )}
-
         <button type="submit" className='btn-auth' disabled={isLoading}>
           {isLoading ? <Spinner /> : (isLogin ? 'Login' : 'Create Account')}
         </button>

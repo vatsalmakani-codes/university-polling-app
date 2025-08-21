@@ -13,25 +13,20 @@ const AdminLoginPage = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    
-    // Attempt to log in with the 'admin' role
-    const success = await login(formData.email, formData.password, 'admin');
-    
+    setIsLoading(true); setError('');
+    const success = await login(formData.email, formData.password, 'super-admin'); // Or 'sub-admin'
     if (success) {
-      navigate('/admin'); // Redirect to the admin dashboard on success
+      navigate('/admin');
     } else {
-      setError('Invalid credentials or role mismatch. Please try again.');
+      setError('Invalid credentials or role mismatch.');
     }
-    
     setIsLoading(false);
   };
 
   return (
     <AuthPageLayout>
       <AuthForm
-        isLogin={true}
+        isLogin
         role="admin"
         formData={formData}
         setFormData={setFormData}
@@ -42,5 +37,4 @@ const AdminLoginPage = () => {
     </AuthPageLayout>
   );
 };
-
 export default AdminLoginPage;

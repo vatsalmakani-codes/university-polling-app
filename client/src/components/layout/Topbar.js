@@ -10,7 +10,7 @@ const Topbar = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   
-  const handleLogout = () => { logout(); navigate('/login/student'); };
+  const handleLogout = () => { logout(); navigate('/login'); };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -28,7 +28,7 @@ const Topbar = () => {
         <li className="nav-item user-profile" ref={dropdownRef}>
           <button className="profile-trigger" onClick={() => setDropdownOpen(!isDropdownOpen)}>
             <span className="user-name">{user?.name}</span>
-            <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.name}`} alt="avatar" className="profile-avatar" />
+            <img src={`http://localhost:5000${user?.profilePicture}`} alt="avatar" className="profile-avatar" />
           </button>
           {isDropdownOpen && (
             <div className="profile-dropdown">

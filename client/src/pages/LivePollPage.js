@@ -17,48 +17,56 @@ const LivePollPage = () => {
   const { id } = useParams();
 
   useEffect(() => {
-    // 1. Fetch initial poll data
-    axios.get(`/api/polls/${id}`)
-      .then(res => {
+    // 1. Fetch initial poll data to populate the page
+    const fetchInitialData = async () => {
+      try {
+        const res = await axios.get(`/api/polls/${id}`);
         setPoll(res.data.poll);
+      } catch (err) {
+        console.error("Failed to fetch initial poll data:", err);
+      } finally {
         setIsLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch poll:", err);
-        setIsLoading(false);
-      });
+      }
+    };
+    fetchInitialData();
 
-    // 2. Connect to WebSocket server
-    const socket = io('http://localhost:5000');
-    
+    // 2. Connect to the WebSocket server
+    const socket = io('http://localhost:5000'); // Use environment variable in production
+
+    // Event listeners for connection status
     socket.on('connect', () => setIsConnected(true));
     socket.on('disconnect', () => setIsConnected(false));
 
-    // 3. Join the specific room for this poll
+    // 3. Join the specific room for this poll to receive targeted updates
     socket.emit('joinPollRoom', id);
 
-    // 4. Listen for real-time vote updates
+    // 4. Listen for real-time 'vote-update' events from the server
     socket.on('vote-update', (updatedPoll) => {
-      setPoll(updatedPoll); // Update state with new data from server
+      setPoll(updatedPoll); // Update the entire poll state with the new data
     });
 
-    // 5. Cleanup on component unmount
+    // 5. Cleanup on component unmount to prevent memory leaks
     return () => {
       socket.disconnect();
     };
   }, [id]);
-  
+
   const totalVotes = useMemo(() => {
     return poll ? poll.options.reduce((acc, opt) => acc + opt.votes, 0) : 0;
   }, [poll]);
 
   const leadingOption = useMemo(() => {
-    if (!poll || totalVotes === 0) return { text: 'N/A', votes: 0 };
-    return poll.options.reduce((leader, current) => current.votes > leader.votes ? current : leader, poll.options[0]);
+    if (!poll || !poll.options || poll.options.length === 0 || totalVotes === 0) {
+      return { text: 'N/A', votes: 0 };
+    }
+    return poll.options.reduce((leader, current) =>
+      current.votes > leader.votes ? current : leader,
+      poll.options[0]
+    );
   }, [poll, totalVotes]);
 
   const chartData = useMemo(() => {
-    if (!poll) return null;
+    if (!poll) return { labels: [], datasets: [] };
     return {
       labels: poll.options.map(opt => opt.optionText),
       datasets: [{
@@ -79,14 +87,14 @@ const LivePollPage = () => {
   return (
     <div className="live-poll-container">
       <div className="page-header">
-        <Link to="/admin" className="back-link"><FaArrowLeft /> Back to Dashboard</Link>
-        <h1 className="page-title">{poll.question}</h1>
-        <div className={`connection-status ${isConnected ? 'connected' : ''}`}>
+        <Link to="/admin" className="back-link"><FaArrowLeft /> Back to Admin Panel</Link>
+        <h1 className="page-title truncate">{poll.question}</h1>
+        <div className={`connection-status ${isConnected && !poll.status == 'CLOSED' ? 'connected' : ''}`}>
           <FaCircle className="live-indicator" />
-          <span>{isConnected ? 'LIVE' : 'DISCONNECTED'}</span>
+          <span>{isConnected && !poll.status == 'CLOSED' ? 'LIVE' : 'DISCONNECTED'}</span>
         </div>
       </div>
-      
+
       <div className="live-stat-cards">
         <div className="stat-card">
           <FaPoll className="stat-icon polls" />
@@ -112,27 +120,27 @@ const LivePollPage = () => {
           <div className="card-header"><h3>Vote Distribution Chart</h3></div>
           <div className="card-body">
             <div className="live-chart-wrapper">
-              {chartData && <Bar 
+              <Bar
                 data={chartData}
                 options={{
                   indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-                  plugins: { legend: { display: false } },
+                  plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => ` ${context.raw} Votes` } } },
                   scales: { x: { ticks: { precision: 0 }, grid: { color: '#f1f3f5' } }, y: { grid: { display: false } } }
                 }}
-              />}
+              />
             </div>
           </div>
         </div>
         <div className="card">
           <div className="card-header"><h3>Results Table</h3></div>
-          <div className="card-body">
+          <div className="card-body no-padding">
             <div className="table-responsive">
               <table className="table">
                 <thead><tr><th>Option</th><th>Votes</th><th>Percentage</th></tr></thead>
                 <tbody>
-                  {[...poll.options].sort((a,b) => b.votes - a.votes).map(opt => (
+                  {[...poll.options].sort((a, b) => b.votes - a.votes).map(opt => (
                     <tr key={opt._id}>
-                      <td>{opt.optionText}</td>
+                      <td className="truncate">{opt.optionText}</td>
                       <td><strong>{opt.votes}</strong></td>
                       <td>{totalVotes > 0 ? ((opt.votes / totalVotes) * 100).toFixed(1) : '0.0'}%</td>
                     </tr>
