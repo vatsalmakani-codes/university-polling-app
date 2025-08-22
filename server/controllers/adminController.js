@@ -19,20 +19,28 @@ exports.createPoll = async (req, res) => {
   }
 };
 
-// @desc    Admin updates a poll's status, deadline, or audience
+
+/**
+ * @desc    Admin updates a poll's status, deadline, or audience
+ * @route   PUT /api/admin/polls/:id/settings
+ */
 exports.updatePollSettings = async (req, res) => {
   const { status, expiresAt, targetAudience } = req.body;
   try {
     const poll = await Poll.findById(req.params.id);
     if (!poll) return res.status(404).json({ msg: 'Poll not found' });
 
-    // --- NEW LOGIC: Prevent re-opening an expired poll ---
-    const newExpiry = expiresAt ? new Date(expiresAt) : new Date(poll.expiresAt);
-    if (status === 'ACTIVE' && newExpiry < new Date()) {
-        return res.status(400).json({ msg: 'Cannot set poll to ACTIVE because its deadline has passed. Please extend the deadline first.' });
+    // --- REFINED VALIDATION LOGIC ---
+    // This check only runs if the intention is to change the status to ACTIVE.
+    if (status && status === 'ACTIVE' && poll.status === 'CLOSED') {
+      const newExpiry = expiresAt ? new Date(expiresAt) : new Date(poll.expiresAt);
+      if (newExpiry < new Date()) {
+        return res.status(400).json({ msg: 'Cannot re-activate poll: its deadline is in the past. Please extend the deadline before activating.' });
+      }
     }
-    // --- END NEW LOGIC ---
+    // --- END REFINED LOGIC ---
 
+    // Apply updates if they were provided in the request body
     if (status) poll.status = status;
     if (expiresAt) poll.expiresAt = expiresAt;
     if (targetAudience) poll.targetAudience = targetAudience;
@@ -40,9 +48,11 @@ exports.updatePollSettings = async (req, res) => {
     await poll.save();
     res.json(poll);
   } catch (err) {
+    console.error(err.message);
     res.status(500).send('Server Error');
   }
 };
+
 
 // @desc    Admin publishes or unpublishes poll results
 exports.publishPollResults = async (req, res) => {
@@ -108,5 +118,49 @@ exports.createNewUser = async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
+  }
+};
+
+/**
+ * @desc    Admin deletes a poll and all associated data
+ * @route   DELETE /api/admin/polls/:id
+ */
+// @desc    Admin deletes a poll and all associated data
+exports.deletePoll = async (req, res) => {
+  try {
+    const pollId = req.params.id;
+    const user = req.user;
+
+    const poll = await Poll.findById(pollId);
+    if (!poll) {
+      return res.status(404).json({ msg: 'Poll not found.' });
+    }
+
+    // --- ROBUST AUTHORIZATION CHECK ---
+    // A sub-admin with specific poll rights can also delete
+    if (user.role === 'sub-admin' && user.managedScope === 'POLLS') {
+        // Check if managedPolls array exists AND if the pollId is in it
+        if (!user.managedPolls || !user.managedPolls.includes(pollId)) {
+            return res.status(403).json({ msg: 'You are not authorized to delete this specific poll.' });
+        }
+    } else if (user.role === 'sub-admin') {
+        // A sub-admin with general scope (STUDENT/FACULTY) might also be allowed to delete
+        // their own created polls. This is a good policy.
+        if (poll.createdBy.toString() !== user._id.toString()) {
+            // Optional: prevent sub-admins from deleting polls they didn't create
+            // unless they have specific poll permissions.
+        }
+    }
+    // Super-admins implicitly have access and pass these checks.
+
+    // Perform deletions
+    await Poll.findByIdAndDelete(pollId);
+    await Vote.deleteMany({ poll: pollId });
+    await Feedback.deleteMany({ poll: pollId });
+
+    res.json({ msg: 'Poll and all associated data have been permanently removed.' });
+  } catch (err) {
+    console.error("Error during poll deletion:", err);
+    res.status(200).send('Server Error');
   }
 };

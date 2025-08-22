@@ -113,12 +113,14 @@ const AdminDashboard = () => {
   };
 
   const deletePoll = async (pollId, pollQuestion) => {
-    if (window.confirm(`Delete the poll "${pollQuestion}"?`)) {
+    if (window.confirm(`Are you sure you want to permanently delete the poll "${pollQuestion}"?`)) {
       try {
-        // --- CRITICAL FIX: Use the correct admin route ---
+        // --- VERIFY THIS URL IS CORRECT ---
         await axios.delete(`/api/admin/polls/${pollId}`);
-        fetchData();
-      } catch (err) { alert('Failed to delete poll.'); }
+        fetchData(); // Refetch all data
+      } catch (err) {
+        alert('Failed to delete poll.');
+      }
     }
   };
 

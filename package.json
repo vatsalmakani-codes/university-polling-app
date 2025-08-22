@@ -1,22 +1,20 @@
 {
-  "name": "university-polling-app",
+  "name": "university-polling-app-final",
   "version": "3.0.0",
   "description": "A full-stack MERN application for university polling with role-based access and advanced admin features.",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "install-server": "npm install --prefix server",
     "install-client": "npm install --prefix client",
     "install-all": "npm run install-server && npm run install-client",
+
+    "postinstall": "npm run install-all",
+
     "server": "npm run dev --prefix server",
     "client": "npm start --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "concurrently": "^8.2.2"
-  },
-  "dependencies": {
-    "framer-motion": "^12.23.12"
   }
 }

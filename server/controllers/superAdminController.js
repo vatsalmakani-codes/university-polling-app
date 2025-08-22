@@ -6,9 +6,9 @@ const bcrypt = require('bcryptjs');
 exports.createSubAdmin = async (req, res) => {
     const { name, email, password, managedScope, managedPolls } = req.body;
     try {
-        if (!email.toLowerCase().endsWith('.edu')) {
-            return res.status(400).json({ msg: 'Email must be a valid .edu address.' });
-        }
+        // if (!email.toLowerCase().endsWith('.edu')) {
+        //     return res.status(400).json({ msg: 'Email must be a valid .edu address.' });
+        // }
         let user = await User.findOne({ email });
         if (user) return res.status(400).json({ msg: 'User with this email already exists.' });
 

@@ -69,7 +69,7 @@ const CreateAdminModal = ({ closeModal, onUpdate }) => {
           {success && <div className="modal-message success">{success}</div>}
           <form onSubmit={handleSubmit}>
             <div className="form-group"><label>Full Name</label><input type="text" name="name" value={formData.name} onChange={onChange} required /></div>
-            <div className="form-group"><label>Email (.edu)</label><input type="email" name="email" value={formData.email} onChange={onChange} required /></div>
+            <div className="form-group"><label>Email</label><input type="email" name="email" value={formData.email} onChange={onChange} required /></div>
             <div className="form-group"><label>Initial Password</label><input type="password" name="password" value={formData.password} onChange={onChange} required minLength="6" /></div>
             
             <div className="form-group">

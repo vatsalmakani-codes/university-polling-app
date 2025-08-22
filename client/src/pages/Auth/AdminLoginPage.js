@@ -14,7 +14,7 @@ const AdminLoginPage = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true); setError('');
-    const success = await login(formData.email, formData.password, 'super-admin'); // Or 'sub-admin'
+    const success = await login(formData.email, formData.password, formData.email == 'admin@gmail.com' ? 'super-admin' : 'sub-admin'); // Or 'sub-admin'
     if (success) {
       navigate('/admin');
     } else {

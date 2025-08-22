@@ -236,7 +236,6 @@
 .role-badge { padding: .25em .6em; font-size: 75%; font-weight: 700; text-align: center; white-space: nowrap; border-radius: .35rem; color: #fff; text-transform: capitalize; }
 .role-badge.student { background-color: var(--primary-color); }
 .role-badge.faculty { background-color: var(--success-color); }
-.role-badge.sub-admin { background-color: var(--warning-color); }
 .role-badge.super-admin { background-color: var(--danger-color); }
 
 .actions-cell { display: flex; gap: 0.5rem; }

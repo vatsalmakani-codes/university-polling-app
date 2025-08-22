@@ -143,12 +143,23 @@ const PollDetail = () => {
   const renderResults = () => {
     if (resultsHidden) {
       return (
+        <>
         <div className="results-hidden-message">
           <FaInfoCircle />
           <h3>Results are Hidden</h3>
           <p>The results for this poll will be made public once it has been closed and published by an administrator.</p>
           {hasVoted && <p className="voted-confirmation">Thank you, your vote has been recorded!</p>}
         </div>
+         {hasVoted && (
+          <div className="feedback-prompt">
+            {hasSubmittedFeedback ? (
+              <button className="btn-feedback submitted" disabled><FaCheckCircle /> Feedback Submitted</button>
+            ) : (
+              <button className="btn-feedback" onClick={() => setShowFeedbackModal(true)}><FaPenFancy /> Share Your Feedback</button>
+            )}
+          </div>
+        )}
+        </>
       );
     }
     return (
@@ -171,15 +182,7 @@ const PollDetail = () => {
             }}
           />}
         </div>
-        {hasVoted && (
-          <div className="feedback-prompt">
-            {hasSubmittedFeedback ? (
-              <button className="btn-feedback submitted" disabled><FaCheckCircle /> Feedback Submitted</button>
-            ) : (
-              <button className="btn-feedback" onClick={() => setShowFeedbackModal(true)}><FaPenFancy /> Share Your Feedback</button>
-            )}
-          </div>
-        )}
+       
       </div>
     );
   };

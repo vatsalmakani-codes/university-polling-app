@@ -14,7 +14,7 @@ router.use(protect, authorize('super-admin', 'sub-admin'));
 router.post('/polls', adminController.createPoll);
 router.put('/polls/:id/settings', adminController.updatePollSettings);
 router.put('/polls/:id/publish', adminController.publishPollResults);
-// You would add a poll deletion route here if needed, e.g., router.delete('/polls/:id', adminController.deletePoll)
+router.delete('/polls/:id', adminController.deletePoll);
 
 // User Management
 router.post('/users/create', adminController.createNewUser);
