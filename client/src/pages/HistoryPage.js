@@ -13,7 +13,7 @@ const HistoryPage = () => {
   const [error, setError] = useState('');
 
   // Determine the user's role once for clean conditional logic
-  const isStudent = user.role === 'student';
+  const isStudent = user.role === 'student'   || user.role === 'faculty';
 
   useEffect(() => {
     // Determine the correct API endpoint based on the user's role
