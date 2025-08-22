@@ -35,33 +35,32 @@ exports.registerUser = async (req, res) => {
 // @desc    Authenticate a user and get token
 // @route   POST /api/auth/login
 exports.loginUser = async (req, res) => {
-  const { email, password, role } = req.body; // Role is now sent from frontend
+  const { email, password, role } = req.body;
   try {
     let user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials.' });
-    }
+    if (!user) return res.status(400).json({ msg: 'Invalid credentials.' });
 
-    // Role check for specific login portals
-    if (role === 'admin' && !['super-admin', 'sub-admin'].includes(user.role)) {
+    // --- CORRECTED LOGIC for role mismatch ---
+    const isAdminLogin = role === 'admin';
+    const isUserAnAdmin = ['super-admin', 'sub-admin'].includes(user.role);
+
+    if (isAdminLogin && !isUserAnAdmin) {
       return res.status(403).json({ msg: 'Access denied. Not an administrator.' });
     }
-    if (role && role !== 'admin' && user.role !== role) {
+    if (!isAdminLogin && user.role !== role) {
       return res.status(403).json({ msg: 'Role mismatch. Please use the correct login portal.' });
     }
+    // --- END CORRECTION ---
     
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials.' });
-    }
-
+    if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials.' });
+    
     const payload = { user: { id: user.id, role: user.role } };
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' }, (err, token) => {
       if (err) throw err;
       res.json({ token });
     });
   } catch (err) {
-    console.error(err.message);
     res.status(500).send('Server Error');
   }
 };

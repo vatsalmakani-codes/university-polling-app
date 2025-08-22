@@ -25,9 +25,18 @@ exports.updatePollSettings = async (req, res) => {
   try {
     const poll = await Poll.findById(req.params.id);
     if (!poll) return res.status(404).json({ msg: 'Poll not found' });
+
+    // --- NEW LOGIC: Prevent re-opening an expired poll ---
+    const newExpiry = expiresAt ? new Date(expiresAt) : new Date(poll.expiresAt);
+    if (status === 'ACTIVE' && newExpiry < new Date()) {
+        return res.status(400).json({ msg: 'Cannot set poll to ACTIVE because its deadline has passed. Please extend the deadline first.' });
+    }
+    // --- END NEW LOGIC ---
+
     if (status) poll.status = status;
     if (expiresAt) poll.expiresAt = expiresAt;
     if (targetAudience) poll.targetAudience = targetAudience;
+    
     await poll.save();
     res.json(poll);
   } catch (err) {

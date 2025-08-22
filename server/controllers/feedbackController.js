@@ -65,9 +65,11 @@ exports.toggleFeaturedFeedback = async (req, res) => {
 exports.deleteFeedback = async (req, res) => {
     try {
         const feedback = await Feedback.findById(req.params.id);
-        if (!feedback) return res.status(404).json({ msg: 'Feedback not found.' });
+        if (!feedback) {
+            return res.status(404).json({ msg: 'Feedback not found.' });
+        }
         await feedback.deleteOne();
-        res.json({ msg: 'Feedback removed.' });
+        res.json({ msg: 'Feedback item removed.' });
     } catch(err) {
         console.error(err.message);
         res.status(500).send('Server Error');

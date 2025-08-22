@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useContext, useCallback } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Spinner from '../components/Spinner';
 import FeedbackModal from '../components/modals/FeedbackModal';
-import { FaUser, FaClock, FaChartBar, FaCheck, FaInfoCircle, FaPenFancy, FaCheckCircle } from 'react-icons/fa';
+import { FaUser, FaClock, FaChartBar, FaCheck, FaInfoCircle, FaPenFancy, FaCheckCircle, FaFileCsv, FaArrowLeft } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
@@ -76,6 +76,21 @@ const PollDetail = () => {
     }
   };
 
+  const handleExport = () => {
+    if (!poll) return;
+    const headers = "Option,Votes\n";
+    // Sanitize option text for CSV (escape double quotes)
+    const csvContent = poll.options.map(opt => `"${opt.optionText.replace(/"/g, '""')}",${opt.votes}`).join("\n");
+    const blob = new Blob([headers + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `poll-results-${poll._id}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Memoized Data for Chart
   const chartData = useMemo(() => {
     if (!poll?.options || resultsHidden) return null;
@@ -95,11 +110,9 @@ const PollDetail = () => {
     };
   }, [poll, userVote, resultsHidden]);
 
-  // Loading and Error States
   if (isLoading) return <Spinner fullscreen text="Loading Poll..." />;
   if (!poll) return <div className="error-state">Poll not found.</div>;
 
-  // Derived State for Rendering Logic
   const totalVotes = poll.options?.reduce((acc, option) => acc + (option.votes || 0), 0) || 0;
   const hasVoted = userVote.length > 0;
   const canVote = (user.role === 'student' || user.role === 'faculty') && poll.status === 'ACTIVE' && new Date(poll.expiresAt) > new Date();
@@ -140,6 +153,14 @@ const PollDetail = () => {
     }
     return (
       <div className="results-section">
+        <div className="results-header">
+          <h3>Results</h3>
+          {(user.role === 'faculty' || user.role.includes('admin')) && (
+            <button onClick={handleExport} className="btn-export">
+              <FaFileCsv /> Export Results
+            </button>
+          )}
+        </div>
         <div className="poll-chart-container">
           {chartData && <Bar 
             data={chartData}
@@ -174,6 +195,7 @@ const PollDetail = () => {
           }} 
         />}
       <div className="poll-detail-container">
+        <Link to="/dashboard" className="back-link"><FaArrowLeft /> Back to Dashboard</Link>
         <div className='poll-detail-card'>
           <div className="poll-header-info">
             <h2>{poll.question}</h2>
@@ -190,5 +212,4 @@ const PollDetail = () => {
     </>
   );
 };
-
 export default PollDetail;

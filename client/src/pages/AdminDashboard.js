@@ -7,8 +7,8 @@ import ResetPasswordModal from '../components/modals/ResetPasswordModal';
 import ManagePollModal from '../components/modals/ManagePollModal';
 import CreateUserModal from '../components/modals/CreateUserModal';
 import CreateAdminModal from '../components/modals/CreateAdminModal';
-import { 
-  FaUsers, FaPoll, FaCheckSquare, FaTrash, FaKey, 
+import {
+  FaUsers, FaPoll, FaCheckSquare, FaTrash, FaKey,
   FaExternalLinkAlt, FaPlus, FaSearch, FaWrench, FaComments, FaUserPlus, FaStar, FaUserCog
 } from 'react-icons/fa';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
@@ -29,7 +29,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Modal State
   const [modalUser, setModalUser] = useState(null);
   const [modalPoll, setModalPoll] = useState(null);
@@ -55,7 +55,7 @@ const AdminDashboard = () => {
     allPolls.filter(p => p.question.toLowerCase().includes(pollSearch.toLowerCase())),
     [allPolls, pollSearch]
   );
-  
+
   const fetchData = useCallback(async () => {
     try {
       const [usersRes, pollsRes, feedbackRes] = await Promise.all([
@@ -77,11 +77,11 @@ const AdminDashboard = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   // Memoized calculations for stats and chart data
-  const totalVotes = useMemo(() => 
-    allPolls.reduce((acc, p) => acc + p.options.reduce((sum, o) => sum + o.votes, 0), 0), 
+  const totalVotes = useMemo(() =>
+    allPolls.reduce((acc, p) => acc + p.options.reduce((sum, o) => sum + o.votes, 0), 0),
     [allPolls]
   );
-  
+
   const userRoleData = useMemo(() => {
     const roles = allUsers.reduce((acc, u) => {
       const role = u.role.includes('admin') ? 'Admin' : u.role;
@@ -91,15 +91,15 @@ const AdminDashboard = () => {
     }, {});
     return {
       labels: Object.keys(roles),
-      datasets: [{ 
-        data: Object.values(roles), 
-        backgroundColor: ['#4e73df', '#1cc88a', '#e74a3b', '#f6c23e'], 
+      datasets: [{
+        data: Object.values(roles),
+        backgroundColor: ['#4e73df', '#1cc88a', '#e74a3b', '#f6c23e'],
         borderColor: '#fff',
         borderWidth: 2,
       }],
     };
   }, [allUsers]);
-  
+
   // Action Handlers
   const deleteUser = async (userId, userName) => {
     if (window.confirm(`Are you sure you want to permanently delete "${userName}"? This will also remove all their votes and feedback.`)) {
@@ -113,13 +113,12 @@ const AdminDashboard = () => {
   };
 
   const deletePoll = async (pollId, pollQuestion) => {
-    if (window.confirm(`Are you sure you want to permanently delete the poll "${pollQuestion}"?`)) {
+    if (window.confirm(`Delete the poll "${pollQuestion}"?`)) {
       try {
-        await axios.delete(`/api/polls/${pollId}`);
-        fetchData(); // Refetch all data
-      } catch (err) {
-        alert('Failed to delete poll.');
-      }
+        // --- CRITICAL FIX: Use the correct admin route ---
+        await axios.delete(`/api/admin/polls/${pollId}`);
+        fetchData();
+      } catch (err) { alert('Failed to delete poll.'); }
     }
   };
 
@@ -127,19 +126,19 @@ const AdminDashboard = () => {
     try {
       await axios.put(`/api/admin/feedback/${feedbackId}/feature`);
       fetchData();
-    } catch(err) {
+    } catch (err) {
       alert('Failed to update feedback status.');
     }
   };
-  
+
   const deleteFeedback = async (feedbackId) => {
     if (window.confirm('Are you sure you want to delete this feedback item?')) {
-        try {
-            await axios.delete(`/api/admin/feedback/${feedbackId}`);
-            fetchData();
-        } catch (err) {
-            alert('Failed to delete feedback.');
-        }
+      try {
+        await axios.delete(`/api/admin/feedback/${feedbackId}`);
+        fetchData();
+      } catch (err) {
+        alert('Failed to delete feedback.');
+      }
     }
   };
 
@@ -147,8 +146,8 @@ const AdminDashboard = () => {
     setUserTypeToCreate(role);
     setShowCreateUserModal(true);
   };
-  
-  if (loading) return <Spinner fullscreen text="Loading Admin Dashboard..."/>;
+
+  if (loading) return <Spinner fullscreen text="Loading Admin Dashboard..." />;
   if (error) return <div className="error-state">{error}</div>;
 
   const userTable = (usersToDisplay) => (
@@ -182,7 +181,7 @@ const AdminDashboard = () => {
       {showCreateAdminModal && <CreateAdminModal closeModal={() => setShowCreateAdminModal(false)} onUpdate={fetchData} />}
 
       <div className="page-header"><h1 className="page-title">Admin Dashboard</h1><p className="page-subtitle">System overview and management tools.</p></div>
-      
+
       <div className="stat-cards-grid">
         <div className="stat-card"><FaUsers className="stat-icon users" /><div className="stat-info"><span className="stat-label">Total Users</span><span className="stat-number">{allUsers.length}</span></div></div>
         <div className="stat-card"><FaPoll className="stat-icon polls" /><div className="stat-info"><span className="stat-label">Total Polls</span><span className="stat-number">{allPolls.length}</span></div></div>
@@ -202,8 +201,8 @@ const AdminDashboard = () => {
           <div className="card-header d-flex justify-content-between align-items-center">
             <h3>User Management (Students & Faculty)</h3>
             <div className="header-actions">
-              <button className="btn-create-user" onClick={() => openCreateUserModal('student')}><FaUserPlus/> New Student</button>
-              <button className="btn-create-user" onClick={() => openCreateUserModal('faculty')}><FaUserPlus/> New Faculty</button>
+              <button className="btn-create-user" onClick={() => openCreateUserModal('student')}><FaUserPlus /> New Student</button>
+              <button className="btn-create-user" onClick={() => openCreateUserModal('faculty')}><FaUserPlus /> New Faculty</button>
             </div>
           </div>
           <div className="card-body">
@@ -247,7 +246,7 @@ const AdminDashboard = () => {
         <div className="card">
           <div className="card-header d-flex justify-content-between align-items-center">
             <h3>Administrator Management</h3>
-            <button className="btn-create-user" onClick={() => setShowCreateAdminModal(true)}><FaUserCog/> New Admin</button>
+            <button className="btn-create-user" onClick={() => setShowCreateAdminModal(true)}><FaUserCog /> New Admin</button>
           </div>
           <div className="card-body">
             <div className="filter-bar"><div className="search-input"><FaSearch /><input type="text" placeholder="Search admins by name or email..." value={userSearch} onChange={e => setUserSearch(e.target.value)} /></div></div>
@@ -257,10 +256,10 @@ const AdminDashboard = () => {
       )}
 
       {activeTab === 'feedback' && (
-         <div className="card">
-           <div className="card-header"><h3>User Feedback Management</h3></div>
-           <div className="card-body">
-             <div className="table-responsive">
+        <div className="card">
+          <div className="card-header"><h3>User Feedback Management</h3></div>
+          <div className="card-body">
+            <div className="table-responsive">
               <table className="table">
                 <thead><tr><th>User</th><th>Comment</th><th>Rating</th><th>Actions</th></tr></thead>
                 <tbody>
@@ -277,9 +276,9 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
-             </div>
-           </div>
-         </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,68 +1,63 @@
 const Poll = require('../models/pollModel');
 const Vote = require('../models/voteModel');
-const Feedback = require('../models/feedbackModel'); 
-/**
- * @desc    Get all polls visible to the current user based on their role
- * @route   GET /api/polls
- */
+const Feedback = require('../models/feedbackModel');
+
+// Helper function to auto-close expired polls
+const autoCloseExpiredPolls = async () => {
+  const now = new Date();
+  await Poll.updateMany(
+    { expiresAt: { $lt: now }, status: 'ACTIVE' },
+    { $set: { status: 'CLOSED' } }
+  );
+};
+
 exports.getAllPolls = async (req, res) => {
   try {
-    const now = new Date();
-    // Define the filter based on the user's role
-    const audienceFilter = req.user.role === 'student'
-      ? { targetAudience: { $in: ['STUDENT', 'ALL'] } }
-      : req.user.role === 'faculty'
-      ? { targetAudience: { $in: ['FACULTY', 'ALL'] } }
-      : {}; // Admins see all polls
-
-    // Use .lean() to get plain JS objects for easier manipulation
-    const polls = await Poll.find(audienceFilter).sort({ createdAt: -1 }).populate('createdBy', 'name').lean();
+    await autoCloseExpiredPolls(); // Auto-close expired polls first
     
+    const now = new Date();
+    const audienceFilter = ['super-admin', 'sub-admin'].includes(req.user.role)
+      ? {}
+      : req.user.role === 'student'
+      ? { targetAudience: { $in: ['STUDENT', 'ALL'] } }
+      : { targetAudience: { $in: ['FACULTY', 'ALL'] } };
+
+    const polls = await Poll.find(audienceFilter).sort({ createdAt: -1 }).populate('createdBy', 'name').lean();
     const userVotes = await Vote.find({ user: req.user.id });
     const votedPollIds = new Set(userVotes.map(vote => vote.poll.toString()));
 
     const pollsWithVoteStatus = polls.map(poll => {
-      const hasVoted = votedPollIds.has(poll._id.toString());
-      const isExpired = new Date(poll.expiresAt) < now;
-
-      // Sanitize options if results are not published for non-admins
-      if (req.user.role !== 'admin' && req.user.role !== 'super-admin' && !poll.resultsPublished) {
-        const sanitizedOptions = poll.options.map(opt => ({
-          _id: opt._id,
-          optionText: opt.optionText,
-        }));
-        return { ...poll, options: sanitizedOptions, hasVoted, isExpired };
+      const isAdmin = ['super-admin', 'sub-admin'].includes(req.user.role);
+      let sanitizedOptions = poll.options;
+      if (!isAdmin && !poll.resultsPublished) {
+        sanitizedOptions = poll.options.map(opt => ({ _id: opt._id, optionText: opt.optionText }));
       }
-      
-      return { ...poll, hasVoted, isExpired };
+      return {
+        ...poll,
+        options: sanitizedOptions,
+        hasVoted: votedPollIds.has(poll._id.toString()),
+        isExpired: new Date(poll.expiresAt) < now,
+      };
     });
-
     res.json(pollsWithVoteStatus);
   } catch (err) {
-    console.error(err.message);
     res.status(500).send('Server Error');
   }
 };
 
-/**
- * @desc    Get a single poll's details, respecting result publication rules
- * @route   GET /api/polls/:id
- */
 exports.getPollById = async (req, res) => {
   try {
+    await autoCloseExpiredPolls(); // Ensure status is up-to-date
+    
     const poll = await Poll.findById(req.params.id).populate('createdBy', 'name');
     if (!poll) return res.status(404).json({ msg: 'Poll not found' });
 
-
- // Fetch both the user's vote AND their feedback for this poll
     const [vote, feedback] = await Promise.all([
       Vote.findOne({ user: req.user.id, poll: req.params.id }),
       Feedback.findOne({ user: req.user.id, poll: req.params.id })
     ]);
+    const hasSubmittedFeedback = !!feedback;
     
-    // --- NEW PROPERTY ---
-    const hasSubmittedFeedback = !!feedback; // Convert feedback object to boolean
-
     const isAdmin = ['super-admin', 'sub-admin'].includes(req.user.role);
     if (!isAdmin && !poll.resultsPublished) {
       const pollData = poll.toObject();
@@ -73,10 +68,10 @@ exports.getPollById = async (req, res) => {
     
     res.json({ poll, userVote: vote ? vote.selectedOptions : [], resultsHidden: false, hasSubmittedFeedback });
   } catch (err) {
-    console.error(err.message);
     res.status(500).send('Server Error');
   }
 };
+
 
 /**
  * @desc    Cast a vote on a poll
