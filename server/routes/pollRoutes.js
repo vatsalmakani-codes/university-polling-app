@@ -12,7 +12,7 @@ const {
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.get('/', protect, getAllPolls);
-router.get('/history/my-votes', protect, authorize('student'), getMyVoteHistory);
+router.get('/history/my-votes', protect, authorize('student', 'faculty'), getMyVoteHistory);
 router.get('/history/my-polls', protect, authorize('faculty', 'super-admin', 'sub-admin'), getMyCreatedPolls);
 router.get('/:id', protect, getPollById);
 router.post('/:id/vote', protect, authorize('student', 'faculty'), voteOnPoll);
